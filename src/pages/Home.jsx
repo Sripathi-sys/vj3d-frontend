@@ -1,3 +1,4 @@
+
 // src/pages/Home.jsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
@@ -253,7 +254,92 @@ function Home() {
         </a>
       </section>
 
-      {/* ── FLOATING WA BUTTON ── */}
+
+      {/* ── SERVICES BANNER ── */}
+      <section style={{
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%)',
+        padding: '64px 24px',
+        textAlign: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* Background decorative dots */}
+        <div style={{ position:'absolute', inset:0, backgroundImage:'radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize:'32px 32px', pointerEvents:'none' }} />
+
+        <div style={{ position:'relative', zIndex:1 }}>
+          <h2 style={{ fontFamily:'var(--font-serif)', fontSize:'clamp(26px, 4vw, 38px)', fontWeight:700, color:'#fff', marginBottom:12, letterSpacing:'-0.3px' }}>
+            Check Out Our Services
+          </h2>
+          <p style={{ fontSize:15, color:'rgba(255,255,255,0.65)', marginBottom:40, maxWidth:480, margin:'0 auto 40px' }}>
+            We offer a variety of useful services from our centre in Gingee.
+          </p>
+
+          {/* Icons row */}
+          <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'clamp(16px, 3vw, 36px)', flexWrap:'wrap', marginBottom:44 }}>
+            {[
+              { icon:'🪪', label:'Aadhaar' },
+              { icon:'🚌', label:'Transport' },
+              { icon:'💰', label:'Banking' },
+              { icon:'🏛️', label:'Govt Services' },
+              { icon:'📋', label:'Certificates' },
+              { icon:'📱', label:'SIM / Recharge' },
+              { icon:'📄', label:'Applications' },
+            ].map((item, i) => (
+              <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8 }}>
+                <div style={{
+                  width: 72, height: 72,
+                  background: 'rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: 16,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 32,
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  transition: 'transform 0.2s',
+                }}>
+                  {item.icon}
+                </div>
+                <span style={{ fontSize:11, color:'rgba(255,255,255,0.5)', fontWeight:500, letterSpacing:'0.05em' }}>
+                  {item.label}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Button */}
+          <Link
+            to="/services"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              background: '#22c55e',
+              color: '#fff',
+              padding: '14px 32px',
+              borderRadius: 6,
+              fontSize: 15,
+              fontWeight: 700,
+              textDecoration: 'none',
+              letterSpacing: '0.03em',
+              boxShadow: '0 4px 20px rgba(34,197,94,0.35)',
+              transition: 'filter 0.2s, transform 0.2s',
+            }}
+          >
+            ⚙️ Explore Our Services
+          </Link>
+
+          {/* Two service labels */}
+          <div style={{ display:'flex', justifyContent:'center', gap:16, marginTop:28, flexWrap:'wrap' }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.1)', color:'rgba(255,255,255,0.8)', padding:'6px 14px', borderRadius:100, fontSize:12.5, fontWeight:500, border:'1px solid rgba(255,255,255,0.15)' }}>
+              🏛️ Meena CSC & E-Sevai Centre
+            </span>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.1)', color:'rgba(255,255,255,0.8)', padding:'6px 14px', borderRadius:100, fontSize:12.5, fontWeight:500, border:'1px solid rgba(255,255,255,0.15)' }}>
+              🚌 JK Transports
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FLOATING WA BUTTON ── */
       <a
         href="https://wa.me/919159432954"
         target="_blank"
