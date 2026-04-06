@@ -1,4 +1,3 @@
-
 // src/pages/Home.jsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
@@ -339,7 +338,7 @@ function Home() {
         </div>
       </section>
 
-      {/* ── FLOATING WA BUTTON ── */
+      {/* ── FLOATING WA BUTTON ── */}
       <a
         href="https://wa.me/919159432954"
         target="_blank"
