@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getProducts, getOrders, getCategories, createProduct, deleteProduct, createCategory, deleteCategory, updateStatus } from '../api';
 
-// ── Sidebar ──
 function Sidebar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -33,17 +32,16 @@ function Sidebar() {
   );
 }
 
-// ── Shared styles ──
-const overlayStyle = { position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:3000, display:'flex', alignItems:'center', justifyContent:'center', padding:24, overflowY:'auto' };
-const modalStyle   = { background:'#fff', borderRadius:8, width:'100%', maxWidth:540, maxHeight:'90vh', overflowY:'auto', padding:32, position:'relative', margin:'auto' };
-const inputStyle   = { width:'100%', border:'1.5px solid #d1d5db', borderRadius:4, padding:'10px 14px', fontSize:14, fontFamily:'inherit', outline:'none', marginTop:6, marginBottom:14, display:'block', boxSizing:'border-box' };
-const labelStyle   = { fontSize:13, fontWeight:600, color:'#444', display:'block', marginBottom:2 };
-const saveBtnStyle = { width:'100%', background:'#1a1a1a', color:'#fff', border:'none', padding:'13px', fontSize:14, fontWeight:600, borderRadius:4, cursor:'pointer', marginTop:12, letterSpacing:'0.04em' };
-const addBtnStyle  = { background:'#1a1a1a', color:'#fff', border:'none', padding:'10px 22px', fontSize:13.5, fontWeight:600, borderRadius:4, cursor:'pointer', marginBottom:20, letterSpacing:'0.04em', display:'inline-block' };
-const delBtnStyle  = { background:'#fef2f2', color:'#e53e3e', border:'1px solid #fca5a5', padding:'6px 14px', fontSize:12.5, fontWeight:500, borderRadius:4, cursor:'pointer' };
+const overlayStyle  = { position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:3000, display:'flex', alignItems:'center', justifyContent:'center', padding:24, overflowY:'auto' };
+const modalStyle    = { background:'#fff', borderRadius:8, width:'100%', maxWidth:560, maxHeight:'92vh', overflowY:'auto', padding:32, position:'relative', margin:'auto' };
+const inputStyle    = { width:'100%', border:'1.5px solid #d1d5db', borderRadius:4, padding:'10px 14px', fontSize:14, fontFamily:'inherit', outline:'none', marginTop:6, marginBottom:14, display:'block', boxSizing:'border-box' };
+const labelStyle    = { fontSize:13, fontWeight:600, color:'#444', display:'block', marginBottom:2 };
+const saveBtnStyle  = { width:'100%', background:'#1a1a1a', color:'#fff', border:'none', padding:'13px', fontSize:14, fontWeight:600, borderRadius:4, cursor:'pointer', marginTop:12, letterSpacing:'0.04em' };
+const addBtnStyle   = { background:'#1a1a1a', color:'#fff', border:'none', padding:'10px 22px', fontSize:13.5, fontWeight:600, borderRadius:4, cursor:'pointer', marginBottom:20, letterSpacing:'0.04em', display:'inline-block' };
+const delBtnStyle   = { background:'#fef2f2', color:'#e53e3e', border:'1px solid #fca5a5', padding:'6px 14px', fontSize:12.5, fontWeight:500, borderRadius:4, cursor:'pointer' };
 const closeBtnStyle = { position:'absolute', top:14, right:14, background:'#f3f4f6', border:'none', width:32, height:32, borderRadius:'50%', fontSize:16, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700 };
 
-// ── Dashboard Home ──
+// ── Dashboard ──
 export function Dashboard() {
   const [stats, setStats] = useState({ products:0, orders:0, revenue:0, pending:0 });
   useEffect(() => {
@@ -71,24 +69,25 @@ export function Dashboard() {
   );
 }
 
-// ── Products Admin ──
+// ── Products ──
 export function AdminProducts() {
-  const [products,   setProducts]   = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [showModal,  setShowModal]  = useState(false);
-  const [saving,     setSaving]     = useState(false);
-  const [imageFile,  setImageFile]  = useState(null);
+  const [products,     setProducts]     = useState([]);
+  const [categories,   setCategories]   = useState([]);
+  const [showModal,    setShowModal]    = useState(false);
+  const [saving,       setSaving]       = useState(false);
+  const [imageFile,    setImageFile]    = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const fileInputRef = useRef();
-  const emptyForm = { name:'', price:'', originalPrice:'', emoji:'', badge:'', category:'', inStock:true, featured:false, isNewArrival:false, isCombo:false };
-  const [form, setForm] = useState(emptyForm);
   const BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api','');
 
+  const emptyForm = { name:'', description:'', price:'', originalPrice:'', emoji:'', badge:'', category:'', inStock:true, featured:false, isNewArrival:false, isCombo:false };
+  const [form, setForm] = useState(emptyForm);
+
   const load = () => {
-    getProducts({}).then(r => setProducts(r.data)).catch(()=>{});
-    getCategories().then(r => setCategories(r.data)).catch(()=>{});
+    getProducts({}).then(r=>setProducts(r.data)).catch(()=>{});
+    getCategories().then(r=>setCategories(r.data)).catch(()=>{});
   };
-  useEffect(() => { load(); }, []);
+  useEffect(()=>{ load(); },[]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -102,15 +101,16 @@ export function AdminProducts() {
     setSaving(true);
     try {
       const data = new FormData();
-      data.append('name',         form.name);
-      data.append('price',        form.price);
-      data.append('originalPrice',form.originalPrice);
-      data.append('emoji',        form.emoji);
-      data.append('badge',        form.badge);
-      data.append('inStock',      form.inStock);
-      data.append('featured',     form.featured);
-      data.append('isNewArrival', form.isNewArrival);
-      data.append('isCombo',      form.isCombo);
+      data.append('name',          form.name);
+      data.append('description',   form.description);
+      data.append('price',         form.price);
+      data.append('originalPrice', form.originalPrice);
+      data.append('emoji',         form.emoji);
+      data.append('badge',         form.badge);
+      data.append('inStock',       form.inStock);
+      data.append('featured',      form.featured);
+      data.append('isNewArrival',  form.isNewArrival);
+      data.append('isCombo',       form.isCombo);
       if (form.category) data.append('category', form.category);
       if (imageFile)     data.append('images', imageFile);
       await createProduct(data);
@@ -126,13 +126,8 @@ export function AdminProducts() {
     }
   };
 
-  const handleDelete = (id) => {
-    deleteProduct(id)
-      .then(() => load())
-      .catch(err => {
-        const msg = err.response?.data?.message || err.message || 'Delete failed';
-        window.alert('Error: ' + msg);
-      });
+  const handleDelete = (id, name) => {
+    deleteProduct(id).then(()=>load()).catch(err=>alert(err.response?.data?.message||'Delete failed'));
   };
 
   return (
@@ -144,21 +139,27 @@ export function AdminProducts() {
           <button style={addBtnStyle} onClick={()=>setShowModal(true)}>+ Add Product</button>
           <div style={{overflowX:'auto'}}>
             <table className="admin-table">
-              <thead><tr><th>Photo</th><th>Name</th><th>Price</th><th>Badge</th><th>Stock</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Photo</th><th>Name</th><th>Description</th><th>Price</th><th>Badge</th><th>Stock</th><th>Actions</th></tr></thead>
               <tbody>
-                {products.length===0 && <tr><td colSpan={6} style={{textAlign:'center',color:'#888',padding:40}}>No products yet — click "+ Add Product"</td></tr>}
+                {products.length===0 && <tr><td colSpan={7} style={{textAlign:'center',color:'#888',padding:40}}>No products yet — click "+ Add Product"</td></tr>}
                 {products.map(p=>(
                   <tr key={p._id}>
                     <td>
-                      <div style={{width:48,height:48,background:'#f3f4f6',borderRadius:4,overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>
+                      <div style={{width:52,height:52,background:'#f3f4f6',borderRadius:4,overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>
                         {p.images?.[0] ? <img src={`${BASE}${p.images[0]}`} alt={p.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/> : (p.emoji||'📦')}
                       </div>
                     </td>
-                    <td style={{fontWeight:500}}>{p.name}</td>
+                    <td style={{fontWeight:500,maxWidth:140}}>{p.name}</td>
+                    <td style={{fontSize:12,color:'#888',maxWidth:180}}>
+                      {p.description
+                        ? <span style={{display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{p.description}</span>
+                        : <span style={{color:'#ccc',fontStyle:'italic'}}>No description</span>
+                      }
+                    </td>
                     <td style={{fontWeight:700}}>₹{p.price}</td>
                     <td>{p.badge&&<span style={{background:'#fee2e2',color:'#991b1b',padding:'2px 8px',borderRadius:2,fontSize:11,fontWeight:700}}>{p.badge}</span>}</td>
-                    <td><span style={{color:p.inStock?'#16a34a':'#e53e3e',fontSize:12,fontWeight:600}}>{p.inStock?'✓ In Stock':'✗ Out of Stock'}</span></td>
-                    <td><button style={delBtnStyle} onClick={()=>handleDelete(p._id)}>🗑️ Delete</button></td>
+                    <td><span style={{color:p.inStock?'#16a34a':'#e53e3e',fontSize:12,fontWeight:600}}>{p.inStock?'✓ In Stock':'✗ Out'}</span></td>
+                    <td><button style={delBtnStyle} onClick={()=>handleDelete(p._id,p.name)}>🗑️ Delete</button></td>
                   </tr>
                 ))}
               </tbody>
@@ -172,6 +173,7 @@ export function AdminProducts() {
                 <h3 style={{fontFamily:'var(--font-serif)',fontSize:22,marginBottom:24}}>Add New Product</h3>
                 <form onSubmit={handleSave}>
 
+                  {/* Photo Upload */}
                   <label style={labelStyle}>Product Photo</label>
                   <div onClick={()=>fileInputRef.current.click()} style={{border:'2px dashed #d1d5db',borderRadius:6,padding:20,textAlign:'center',cursor:'pointer',marginBottom:14,marginTop:6,background:'#f9fafb'}}>
                     {imagePreview
@@ -182,9 +184,20 @@ export function AdminProducts() {
                   <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageChange} style={{display:'none'}}/>
                   {imagePreview && <button type="button" onClick={()=>{setImageFile(null);setImagePreview('');}} style={{fontSize:12,color:'#e53e3e',background:'none',border:'none',cursor:'pointer',marginBottom:10,marginTop:-8,display:'block'}}>✕ Remove photo</button>}
 
+                  {/* Product Name */}
                   <label style={labelStyle}>Product Name *</label>
                   <input style={inputStyle} value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="e.g. Dragon Figurine" required/>
 
+                  {/* Description */}
+                  <label style={labelStyle}>Product Description</label>
+                  <textarea
+                    style={{...inputStyle, minHeight:90, resize:'vertical'}}
+                    value={form.description}
+                    onChange={e=>setForm({...form,description:e.target.value})}
+                    placeholder="Describe your product — size, material, what it's for, customisation options..."
+                  />
+
+                  {/* Price */}
                   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
                     <div>
                       <label style={labelStyle}>Price (₹) *</label>
@@ -241,7 +254,7 @@ export function AdminProducts() {
   );
 }
 
-// ── Orders Admin ──
+// ── Orders ──
 export function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const load = () => { getOrders().then(r=>setOrders(r.data)).catch(()=>{}); };
@@ -265,7 +278,7 @@ export function AdminOrders() {
               <tbody>
                 {orders.length===0 && <tr><td colSpan={7} style={{textAlign:'center',color:'#888',padding:40}}>No orders yet</td></tr>}
                 {orders.map(o=>{
-                  const s = sc[o.status]||{bg:'#f3f4f6',color:'#374151'};
+                  const s=sc[o.status]||{bg:'#f3f4f6',color:'#374151'};
                   return (
                     <tr key={o._id}>
                       <td style={{fontSize:11,fontWeight:700,letterSpacing:1}}>#{o._id.slice(-6).toUpperCase()}</td>
@@ -291,7 +304,7 @@ export function AdminOrders() {
   );
 }
 
-// ── Categories Admin ──
+// ── Categories ──
 export function AdminCategories() {
   const [cats,      setCats]      = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -317,12 +330,7 @@ export function AdminCategories() {
   };
 
   const handleDelete = (id) => {
-    deleteCategory(id)
-      .then(() => load())
-      .catch(err => {
-        const msg = err.response?.data?.message || err.message || 'Delete failed';
-        window.alert('Error: ' + msg);
-      });
+    deleteCategory(id).then(()=>load()).catch(err=>alert(err.response?.data?.message||'Delete failed'));
   };
 
   return (
@@ -335,7 +343,7 @@ export function AdminCategories() {
           <table className="admin-table">
             <thead><tr><th>Emoji</th><th>Name</th><th>Subtitle</th><th>Actions</th></tr></thead>
             <tbody>
-              {cats.length===0 && <tr><td colSpan={4} style={{textAlign:'center',color:'#888',padding:40}}>No categories yet — click "+ Add Category"</td></tr>}
+              {cats.length===0 && <tr><td colSpan={4} style={{textAlign:'center',color:'#888',padding:40}}>No categories yet</td></tr>}
               {cats.map(c=>(
                 <tr key={c._id}>
                   <td style={{fontSize:26}}>{c.emoji}</td>

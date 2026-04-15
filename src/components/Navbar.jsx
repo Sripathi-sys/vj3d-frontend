@@ -37,14 +37,13 @@ function Navbar() {
             <li><Link to="/">Home</Link></li>
             <li><Link to="/products">Shop</Link></li>
             <li><Link to="/categories">Categories</Link></li>
-            <li><Link to="/services">Services</Link></li>
             <li><Link to="/custom-order">Custom Order</Link></li>
             <li><Link to="/contact">Contact</Link></li>
           </ul>
 
           <div className="nav-right">
             {showSearch ? (
-              <form onSubmit={handleSearch} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <form onSubmit={handleSearch} style={{ display:'flex', gap:6, alignItems:'center' }}>
                 <input
                   autoFocus
                   value={search}
@@ -62,18 +61,19 @@ function Navbar() {
               </button>
             )}
 
-            <button className="icon-btn" onClick={() => setCartOpen(true)} title="Cart" style={{ position: 'relative' }}>
+            <button className="icon-btn" onClick={() => setCartOpen(true)} title="Cart" style={{ position:'relative' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
                 <path d="M16 10a4 4 0 0 1-8 0"/>
               </svg>
               {totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
             </button>
 
             <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
-              <span style={menuOpen ? { transform: 'rotate(45deg) translate(5px, 5px)' } : {}} />
-              <span style={menuOpen ? { opacity: 0 } : {}} />
-              <span style={menuOpen ? { transform: 'rotate(-45deg) translate(5px, -5px)' } : {}} />
+              <span style={menuOpen ? { transform:'rotate(45deg) translate(5px, 5px)' } : {}} />
+              <span style={menuOpen ? { opacity:0 } : {}} />
+              <span style={menuOpen ? { transform:'rotate(-45deg) translate(5px, -5px)' } : {}} />
             </button>
           </div>
         </div>
@@ -84,7 +84,6 @@ function Navbar() {
         <Link to="/"             onClick={() => setMenuOpen(false)}>Home</Link>
         <Link to="/products"     onClick={() => setMenuOpen(false)}>Shop</Link>
         <Link to="/categories"   onClick={() => setMenuOpen(false)}>Categories</Link>
-        <Link to="/services"     onClick={() => setMenuOpen(false)}>Services</Link>
         <Link to="/custom-order" onClick={() => setMenuOpen(false)}>Custom Order</Link>
         <Link to="/contact"      onClick={() => setMenuOpen(false)}>Contact</Link>
       </div>

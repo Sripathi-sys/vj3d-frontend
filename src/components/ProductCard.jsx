@@ -2,12 +2,13 @@
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 
-const BASE = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000';
+const BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
 
 function ProductCard({ product }) {
   const { addToCart } = useCart();
   const [added, setAdded] = useState(false);
-  const savings = product.originalPrice ? product.originalPrice - product.price : null;
+
+  const savings  = product.originalPrice ? product.originalPrice - product.price : null;
   const discount = savings && product.originalPrice
     ? Math.round((savings / product.originalPrice) * 100)
     : null;
@@ -15,6 +16,7 @@ function ProductCard({ product }) {
   const badgeLabel = product.badge === 'NEW'   ? 'New'
                    : product.badge === 'COMBO' ? 'Combo'
                    : product.badge === 'SALE'  ? 'Sale'
+                   : product.badge === 'HOT'   ? 'Hot'
                    : discount                  ? `-${discount}%`
                    : null;
 
@@ -39,6 +41,23 @@ function ProductCard({ product }) {
 
       <div className="pbody">
         <div className="pname">{product.name}</div>
+
+        {/* Description — shown if exists */}
+        {product.description && (
+          <div style={{
+            fontSize: 12,
+            color: 'var(--text3)',
+            lineHeight: 1.55,
+            marginBottom: 8,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}>
+            {product.description}
+          </div>
+        )}
+
         <div className="pprices">
           <span className="pprice">₹{product.price}</span>
           {product.originalPrice && <span className="pwas">₹{product.originalPrice}</span>}
