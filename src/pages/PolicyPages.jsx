@@ -260,6 +260,7 @@ export function ShippingPolicy() {
 
       <h2 style={sectionTitleStyle}>Delivery Timeline</h2>
       <ul style={listStyle}>
+<li>All the orders are shipped and delivered in 2 to 5 days in the respective address</li>
         <li>Standard delivery: <strong>3–5 business days</strong> across India</li>
         <li>Custom orders may take additional time depending on complexity</li>
         <li>You will be notified on WhatsApp once your order is shipped</li>
