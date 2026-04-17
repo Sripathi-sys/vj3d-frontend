@@ -31,8 +31,7 @@ function Navbar() {
             {/* ✅ Shop = All Products */}
             <li><Link to="/products">Shop</Link></li>
 
-            {/* ✅ Categories Page */}
-            <li><Link to="/categories">Categories</Link></li>
+          
 
             <li><Link to="/custom-order">Custom Order</Link></li>
             <li><Link to="/contact">Contact</Link></li>
@@ -70,7 +69,7 @@ function Navbar() {
       <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
         <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
         <Link to="/products" onClick={() => setMenuOpen(false)}>Shop</Link>
-        <Link to="/categories" onClick={() => setMenuOpen(false)}>Categories</Link>
+
         <Link to="/custom-order" onClick={() => setMenuOpen(false)}>Custom Order</Link>
         <Link to="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
       </div>
