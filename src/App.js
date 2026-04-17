@@ -10,6 +10,7 @@ import Toast   from './components/Toast';
 
 import Home       from './pages/Home';
 import Products   from './pages/Products';
+import ProductDetails from './pages/ProductDetails';
 import Categories from './pages/Categories'; // ✅ IMPORTANT (added)
 import Checkout   from './pages/Checkout';
 import { OrderSuccess, Contact, CustomOrder } from './pages/OtherPages';
@@ -44,7 +45,9 @@ function App() {
 
           {/* ✅ SHOP (ALL PRODUCTS) */}
           <Route path="/products" element={<PublicLayout><Products /></PublicLayout>} />
-
+<Route path="/product/:id" element={
+  <PublicLayout><ProductDetails /></PublicLayout>
+} />
           {/* ✅ FIXED: Categories page */}
           <Route path="/categories" element={<PublicLayout><Categories /></PublicLayout>} />
 

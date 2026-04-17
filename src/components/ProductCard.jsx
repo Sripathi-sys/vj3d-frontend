@@ -1,10 +1,12 @@
 // src/components/ProductCard.jsx
+
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
-
+import { useNavigate } from 'react-router-dom';
 const BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
 
 function ProductCard({ product }) {
+const navigate = useNavigate();
   const { addToCart } = useCart();
 
   const [added, setAdded] = useState(false);
@@ -31,7 +33,11 @@ function ProductCard({ product }) {
   };
 
   return (
-    <div className="pcard">
+  <div
+  className="pcard"
+  onClick={() => navigate(`/product/${product._id}`)}
+  style={{ cursor: 'pointer' }}
+>
       {badgeLabel && <div className={badgeClass}>{badgeLabel}</div>}
 
       <div className="pimg">
@@ -95,10 +101,14 @@ function ProductCard({ product }) {
 
         {product.inStock
           ? (
-            <button
-              className={`add-btn${added ? ' added' : ''}`}
-              onClick={handleAdd}
-            >
+<button
+  className={`add-btn${added ? ' added' : ''}`}
+  onClick={(e) => {
+    e.stopPropagation(); // ✅ prevents navigation
+    handleAdd();
+  }}
+>
+          
               {added ? '✓ Added' : 'Add to Cart'}
             </button>
           )
