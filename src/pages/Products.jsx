@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { getProducts, getCategories } from '../api';
 
@@ -9,12 +9,11 @@ const SkeletonGrid = () => (
   </div>
 );
 
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
-
 function Products() {
-  const query = useQuery();
+  const location = useLocation(); // ✅ FIX
+  const navigate = useNavigate(); // ✅ better navigation
+
+  const query = new URLSearchParams(location.search);
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -23,7 +22,6 @@ function Products() {
   const [sort, setSort] = useState('default');
   const [search, setSearch] = useState(query.get('search') || '');
 
-  // ✅ Get category directly from URL (IMPORTANT FIX)
   const categoryFromUrl = query.get('category');
 
   useEffect(() => {
@@ -52,12 +50,11 @@ function Products() {
     };
 
     load();
-  }, [query, search]); // ✅ IMPORTANT FIX
+  }, [location.search, search]); // ✅ FIXED (NO MULTIPLE CALLS)
 
-  // ✅ Correct filtering logic
   const filtered = products
     .filter(p => {
-      if (!categoryFromUrl) return true; // Shop page
+      if (!categoryFromUrl) return true;
       return (
         p.category?._id === categoryFromUrl ||
         p.category === categoryFromUrl
@@ -103,12 +100,12 @@ function Products() {
         </div>
       </div>
 
-      {/* Optional Category Filter Bar */}
+      {/* Category Filter */}
       {categories.length > 0 && (
         <div className="filter-bar">
           <button
             className={`filter-chip ${!categoryFromUrl ? 'active' : ''}`}
-            onClick={() => window.location.href = '/products'}
+            onClick={() => navigate('/products')} // ✅ FIXED
           >
             All
           </button>
@@ -120,7 +117,7 @@ function Products() {
                 categoryFromUrl === cat._id ? 'active' : ''
               }`}
               onClick={() =>
-                (window.location.href = `/products?category=${cat._id}`)
+                navigate(`/products?category=${cat._id}`) // ✅ FIXED
               }
             >
               {cat.emoji} {cat.name}
