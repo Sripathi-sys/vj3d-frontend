@@ -1,4 +1,3 @@
-// src/pages/Products.jsx
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
@@ -16,23 +15,33 @@ function useQuery() {
 
 function Products() {
   const query = useQuery();
-  const [products,   setProducts]   = useState([]);
+
+  const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [activeCategory, setActiveCategory] = useState(query.get('category') || 'all');
-  const [sort,    setSort]    = useState('default');
-  const [search,  setSearch]  = useState(query.get('search') || '');
+  const [loading, setLoading] = useState(true);
+
+  const [sort, setSort] = useState('default');
+  const [search, setSearch] = useState(query.get('search') || '');
+
+  // ✅ Get category directly from URL (IMPORTANT FIX)
+  const categoryFromUrl = query.get('category');
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       try {
         const params = {};
+
         if (query.get('newArrival') === 'true') params.newArrival = true;
-        if (query.get('combo')      === 'true') params.combo      = true;
-        if (query.get('badge'))                 params.badge      = query.get('badge');
-        if (search)                             params.search     = search;
-        const [p, cats] = await Promise.all([getProducts(params), getCategories()]);
+        if (query.get('combo') === 'true') params.combo = true;
+        if (query.get('badge')) params.badge = query.get('badge');
+        if (search) params.search = search;
+
+        const [p, cats] = await Promise.all([
+          getProducts(params),
+          getCategories()
+        ]);
+
         setProducts(p.data);
         setCategories(cats.data);
       } catch {
@@ -41,25 +50,37 @@ function Products() {
         setLoading(false);
       }
     };
-    load();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
+    load();
+  }, [query, search]); // ✅ IMPORTANT FIX
+
+  // ✅ Correct filtering logic
   const filtered = products
-    .filter(p => activeCategory === 'all' || p.category?._id === activeCategory || p.category === activeCategory)
-    .filter(p => !search || p.name.toLowerCase().includes(search.toLowerCase()))
+    .filter(p => {
+      if (!categoryFromUrl) return true; // Shop page
+      return (
+        p.category?._id === categoryFromUrl ||
+        p.category === categoryFromUrl
+      );
+    })
+    .filter(p =>
+      !search || p.name.toLowerCase().includes(search.toLowerCase())
+    )
     .sort((a, b) => {
-      if (sort === 'price-asc')  return a.price - b.price;
+      if (sort === 'price-asc') return a.price - b.price;
       if (sort === 'price-desc') return b.price - a.price;
-      if (sort === 'name')       return a.name.localeCompare(b.name);
+      if (sort === 'name') return a.name.localeCompare(b.name);
       return 0;
     });
 
   return (
     <div className="products-page">
       <div className="page-header">
-        <h1>All Products</h1>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <h1>
+          {categoryFromUrl ? 'Category Products' : 'All Products'}
+        </h1>
+
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <input
             type="text"
             placeholder="Search products..."
@@ -68,7 +89,12 @@ function Products() {
             className="search-input"
             style={{ width: 200 }}
           />
-          <select className="sort-select" value={sort} onChange={e => setSort(e.target.value)}>
+
+          <select
+            className="sort-select"
+            value={sort}
+            onChange={e => setSort(e.target.value)}
+          >
             <option value="default">Sort: Default</option>
             <option value="price-asc">Price: Low to High</option>
             <option value="price-desc">Price: High to Low</option>
@@ -77,20 +103,25 @@ function Products() {
         </div>
       </div>
 
-      {/* Category filters */}
+      {/* Optional Category Filter Bar */}
       {categories.length > 0 && (
         <div className="filter-bar">
           <button
-            className={`filter-chip ${activeCategory === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('all')}
+            className={`filter-chip ${!categoryFromUrl ? 'active' : ''}`}
+            onClick={() => window.location.href = '/products'}
           >
             All
           </button>
+
           {categories.map(cat => (
             <button
               key={cat._id}
-              className={`filter-chip ${activeCategory === cat._id ? 'active' : ''}`}
-              onClick={() => setActiveCategory(cat._id)}
+              className={`filter-chip ${
+                categoryFromUrl === cat._id ? 'active' : ''
+              }`}
+              onClick={() =>
+                (window.location.href = `/products?category=${cat._id}`)
+              }
             >
               {cat.emoji} {cat.name}
             </button>
@@ -102,17 +133,19 @@ function Products() {
         <SkeletonGrid />
       ) : filtered.length === 0 ? (
         <div className="no-products">
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
-          <p style={{ fontSize: 16, fontWeight: 500 }}>No products found</p>
-          <p style={{ fontSize: 13.5, marginTop: 6 }}>Try a different filter or search term</p>
+          <div style={{ fontSize: 48 }}>🔍</div>
+          <p>No products found</p>
         </div>
       ) : (
         <>
-          <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 20 }}>
-            Showing {filtered.length} product{filtered.length !== 1 ? 's' : ''}
+          <p style={{ marginBottom: 20 }}>
+            Showing {filtered.length} products
           </p>
+
           <div className="products-grid">
-            {filtered.map(p => <ProductCard key={p._id} product={p} />)}
+            {filtered.map(p => (
+              <ProductCard key={p._id} product={p} />
+            ))}
           </div>
         </>
       )}
