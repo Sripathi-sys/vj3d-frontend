@@ -208,8 +208,8 @@ function Home() {
         }
       </section>
 
-      {/* ── CATEGORIES WITH EXPANDABLE DROPDOWN ── */}
-      <div className="section-alt">
+  {/*     {/* ── CATEGORIES WITH EXPANDABLE DROPDOWN ── */}
+     {/* <div className="section-alt"> }
         <div className="section-inner">
           <div className="sec-head">
             <h2>Shop by Category</h2>
@@ -231,7 +231,8 @@ function Home() {
             <Link to="/categories" className="view-all">VIEW ALL CATEGORIES →</Link>
           </div>
         </div>
-      </div>
+      </div> 
+
 
       {/* ── NEW ARRIVALS ── */}
       <section className="section">
