@@ -109,7 +109,7 @@ function Checkout() {
           </div>
 
           <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: 20, fontSize: 14, color: 'var(--text2)' }}>
-            💳 <strong style={{ color: 'var(--text)' }}>Payment:</strong> Cash on Delivery (COD)
+            💳 <strong style={{ color: 'var(--text)' }}>Payment:</strong> 
           </div>
 
           <button type="submit" className="place-order-btn" disabled={loading}>
