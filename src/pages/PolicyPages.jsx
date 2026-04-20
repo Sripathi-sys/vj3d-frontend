@@ -69,7 +69,7 @@ export function TermsOfService() {
 
       <p style={paraStyle}>
         Welcome to VJ-3D-WORKS ("we", "our", "us"). By accessing or using our website
-        (<a href="https://vj3d-frontend.vercel.app/" style={{ color: '#2563eb' }}>https://vj3d-frontend.vercel.app/</a>),
+      
         you agree to be bound by these Terms of Service.
       </p>
 
