@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { placeOrder } from '../api';
+import { createRazorpayOrder, verifyPayment } from '../api';
 
 const BASE = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
@@ -19,31 +19,106 @@ function Checkout() {
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const shipping     = totalPrice >= 999 ? 0 : 80;
-  const grandTotal   = totalPrice + shipping;
+  const shipping   = totalPrice >= 999 ? 0 : 80;
+  const grandTotal = totalPrice + shipping;
 
   const handleSubmit = async e => {
     e.preventDefault();
     if (items.length === 0) { setError('Your cart is empty!'); return; }
     setLoading(true);
     setError('');
+
     try {
-      const orderData = {
-        ...form,
-        items: items.map(i => ({ product: i._id, name: i.name, price: i.price, qty: i.qty })),
-        totalAmount: grandTotal,
-        paymentMethod: 'COD',
+      // 1️⃣ Create Razorpay order on backend
+      const { data } = await createRazorpayOrder({ amount: grandTotal });
+      if (!data.success) throw new Error('Could not initiate payment');
+
+      const rzpOrder = data.order;
+
+      // 2️⃣ Open Razorpay popup
+      const options = {
+        key:         process.env.REACT_APP_RAZORPAY_KEY_ID,
+        amount:      rzpOrder.amount,   // already in paise from backend
+        currency:    'INR',
+        name:        'VJ 3D Works',
+        description: 'Custom 3D Print Order',
+        image:       '/logo192.png',    // optional: your logo
+        order_id:    rzpOrder.id,
+        prefill: {
+          name:    form.customerName,
+          email:   form.customerEmail,
+          contact: form.customerPhone,
+        },
+        notes: {
+          address: form.address,
+        },
+        theme: { color: '#2563eb' },
+
+        // 3️⃣ After successful payment
+        handler: async (response) => {
+          try {
+            const orderData = {
+              ...form,
+              items: items.map(i => ({
+                product: i._id,
+                name:    i.name,
+                price:   i.price,
+                qty:     i.qty,
+              })),
+              totalAmount: grandTotal,
+            };
+
+            const verify = await verifyPayment({
+              razorpay_order_id:   response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature:  response.razorpay_signature,
+              orderData,
+            });
+
+            if (verify.data.success) {
+              clearCart();
+              navigate('/order-success', {
+                state: { orderId: verify.data.orderId },
+              });
+            } else {
+              setError('Payment done but order saving failed. Please contact support.');
+            }
+          } catch (err) {
+            setError(
+              'Payment received but verification failed. ' +
+              'Contact support with Payment ID: ' + response.razorpay_payment_id
+            );
+          } finally {
+            setLoading(false);
+          }
+        },
+
+        // 4️⃣ If user closes popup
+        modal: {
+          ondismiss: () => {
+            setError('Payment was cancelled. Please try again.');
+            setLoading(false);
+          },
+        },
       };
-      const res = await placeOrder(orderData);
-      clearCart();
-      navigate('/order-success', { state: { orderId: res.data.orderId } });
+
+      const rzp = new window.Razorpay(options);
+
+      // 5️⃣ Handle payment failure inside popup
+      rzp.on('payment.failed', (response) => {
+        setError(`Payment failed: ${response.error.description}`);
+        setLoading(false);
+      });
+
+      rzp.open();
+
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to place order. Please try again.');
-    } finally {
+      setError(err.response?.data?.message || 'Failed to initiate payment. Please try again.');
       setLoading(false);
     }
   };
 
+  // ── Empty cart screen ──────────────────────────────────────────────────────
   if (items.length === 0) {
     return (
       <div className="success-page">
@@ -55,10 +130,15 @@ function Checkout() {
     );
   }
 
+  // ── Main checkout page ─────────────────────────────────────────────────────
   return (
     <div className="checkout-page">
-      <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 28, marginBottom: 8, color: 'var(--text)' }}>Checkout</h1>
-      <p style={{ color: 'var(--text3)', fontSize: 14, marginBottom: 32 }}>Fill in your delivery details to complete the order.</p>
+      <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 28, marginBottom: 8, color: 'var(--text)' }}>
+        Checkout
+      </h1>
+      <p style={{ color: 'var(--text3)', fontSize: 14, marginBottom: 32 }}>
+        Fill in your delivery details to complete the order.
+      </p>
 
       {error && (
         <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: 'var(--red)', padding: '12px 16px', borderRadius: 'var(--radius)', marginBottom: 24, fontSize: 14 }}>
@@ -67,7 +147,8 @@ function Checkout() {
       )}
 
       <div className="checkout-grid">
-        {/* FORM */}
+
+        {/* ── FORM ── */}
         <form onSubmit={handleSubmit}>
           <h2>Delivery Details</h2>
 
@@ -108,16 +189,18 @@ function Checkout() {
             <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Any special instructions for your order..." />
           </div>
 
-          <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: 20, fontSize: 14, color: 'var(--text2)' }}>
-            💳 <strong style={{ color: 'var(--text)' }}>Payment:</strong> 
+          {/* Payment info badge */}
+          <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: 20, fontSize: 14, color: 'var(--text2)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            💳 <strong style={{ color: 'var(--text)' }}>Payment:</strong>
+            &nbsp;Secure online payment via Razorpay — UPI, Card, NetBanking
           </div>
 
           <button type="submit" className="place-order-btn" disabled={loading}>
-            {loading ? 'Placing Order...' : `Place Order — ₹${grandTotal}`}
+            {loading ? '⏳ Processing...' : `Pay Now — ₹${grandTotal}`}
           </button>
         </form>
 
-        {/* ORDER SUMMARY */}
+        {/* ── ORDER SUMMARY ── */}
         <div className="checkout-summary">
           <h2>Order Summary</h2>
 
@@ -125,7 +208,9 @@ function Checkout() {
             {items.map(item => (
               <div className="order-item" key={item._id}>
                 <div style={{ width: 56, height: 56, background: 'var(--bg2)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
-                  {item.images?.[0] ? <img src={`${BASE}${item.images[0]}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius)' }} /> : item.emoji || '📦'}
+                  {item.images?.[0]
+                    ? <img src={`${BASE}${item.images[0]}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius)' }} />
+                    : item.emoji || '📦'}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 500, fontSize: 13.5, color: 'var(--text)', marginBottom: 3 }}>{item.name}</div>
@@ -159,6 +244,7 @@ function Checkout() {
             </p>
           )}
         </div>
+
       </div>
     </div>
   );
