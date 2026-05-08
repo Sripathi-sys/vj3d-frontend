@@ -1,16 +1,20 @@
 // src/components/ProductCard.jsx
-
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
-import { useNavigate } from 'react-router-dom';
+
 const BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
 
-function ProductCard({ product }) {
-const navigate = useNavigate();
-  const { addToCart } = useCart();
+// Handle both Cloudinary full URLs and old local /uploads/ paths
+function getImageUrl(img) {
+  if (!img) return null;
+  if (img.startsWith('http://') || img.startsWith('https://')) return img; // Cloudinary URL
+  return `${BASE}${img}`; // old local path
+}
 
-  const [added, setAdded] = useState(false);
-  const [expanded, setExpanded] = useState(false); // ✅ NEW
+function ProductCard({ product }) {
+  const { addToCart } = useCart();
+  const [added,    setAdded]    = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const savings  = product.originalPrice ? product.originalPrice - product.price : null;
   const discount = savings && product.originalPrice
@@ -32,17 +36,20 @@ const navigate = useNavigate();
     setTimeout(() => setAdded(false), 1500);
   };
 
+  const imageUrl = getImageUrl(product.images?.[0]);
+
   return (
-  <div
-  className="pcard"
-  onClick={() => navigate(`/product/${product._id}`)}
-  style={{ cursor: 'pointer' }}
->
+    <div className="pcard">
       {badgeLabel && <div className={badgeClass}>{badgeLabel}</div>}
 
       <div className="pimg">
-        {product.images?.[0]
-          ? <img src={`${BASE}${product.images[0]}`} alt={product.name} loading="lazy" />
+        {imageUrl && !imgError
+          ? <img
+              src={imageUrl}
+              alt={product.name}
+              loading="lazy"
+              onError={() => setImgError(true)}
+            />
           : <div className="pimg-placeholder">{product.emoji || '🖨️'}</div>
         }
       </div>
@@ -50,47 +57,19 @@ const navigate = useNavigate();
       <div className="pbody">
         <div className="pname">{product.name}</div>
 
-        {/* ✅ CLICKABLE DESCRIPTION */}
         {product.description && (
-          <div
-            onClick={() => setExpanded(!expanded)}
-            style={{
-              fontSize: 12,
-              color: 'var(--text3)',
-              lineHeight: 1.55,
-              marginBottom: 8,
-              cursor: 'pointer',
-
-              display: expanded ? 'block' : '-webkit-box',
-              WebkitLineClamp: expanded ? 'unset' : 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
+          <div style={{
+            fontSize: 12,
+            color: 'var(--text3)',
+            lineHeight: 1.55,
+            marginBottom: 8,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}>
             {product.description}
-
-            {!expanded && (
-              <span style={{ color: '#2563eb', marginLeft: 4 }}>
-                ...more
-              </span>
-            )}
           </div>
-        )}
-
-        {/* Optional Show Less */}
-        {expanded && (
-          <span
-            onClick={() => setExpanded(false)}
-            style={{
-              color: '#2563eb',
-              fontSize: 12,
-              cursor: 'pointer',
-              display: 'block',
-              marginBottom: 8
-            }}
-          >
-            Show less
-          </span>
         )}
 
         <div className="pprices">
@@ -100,18 +79,9 @@ const navigate = useNavigate();
         </div>
 
         {product.inStock
-          ? (
-<button
-  className={`add-btn${added ? ' added' : ''}`}
-  onClick={(e) => {
-    e.stopPropagation(); // ✅ prevents navigation
-    handleAdd();
-  }}
->
-          
+          ? <button className={`add-btn${added ? ' added' : ''}`} onClick={handleAdd}>
               {added ? '✓ Added' : 'Add to Cart'}
             </button>
-          )
           : <div className="out-of-stock">Sold Out</div>
         }
       </div>
