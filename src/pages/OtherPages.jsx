@@ -2,6 +2,9 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
+const WA_NUMBER = '919159432954';
+const WA_BASE   = `https://wa.me/${WA_NUMBER}`;
+
 /* ── ORDER SUCCESS ── */
 export function OrderSuccess() {
   const { state } = useLocation();
@@ -20,12 +23,15 @@ export function OrderSuccess() {
       </p>
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
         <Link to="/products" className="btn-primary">Continue Shopping</Link>
+        {/* ✅ FIX: Replaced email tracking with WhatsApp */}
         <a
-  href="mailto:vj3dworks@gmail.com?subject=Order%20Tracking&body=Hi,%20I%20want%20to%20track%20my%20order."
-  className="btn-outline"
->
-  Track via Email
-</a>
+          href={`${WA_BASE}?text=Hi%20VJ%203D%20Works!%20I%20want%20to%20track%20my%20order.%20Order%20ID%3A%20${state?.orderId || ''}`}
+          target="_blank"
+          rel="noreferrer"
+          className="btn-outline"
+        >
+          📲 Track via WhatsApp
+        </a>
       </div>
     </div>
   );
@@ -42,13 +48,20 @@ export function Contact() {
 
       <div className="contact-card">
 
-<div className="contact-row">
-  <span style={{ fontSize: 22 }}>📧</span>
-  <div>
-    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 3 }}>Email</div>
-    <a href="mailto:vj3dworks@gmail.com">vj3dworks@gmail.com</a>
-  </div>
-</div>
+        {/* ✅ FIX: Replaced Email row with WhatsApp row */}
+        <div className="contact-row">
+          <span style={{ fontSize: 22 }}>💬</span>
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 3 }}>WhatsApp</div>
+            <a
+              href={`${WA_BASE}?text=Hi%20VJ%203D%20Works!`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              +91 91594 32954
+            </a>
+          </div>
+        </div>
 
         <div className="contact-row">
           <span style={{ fontSize: 22 }}>📍</span>
@@ -59,6 +72,7 @@ export function Contact() {
             </span>
           </div>
         </div>
+
         <div className="contact-row">
           <span style={{ fontSize: 22 }}>📸</span>
           <div>
@@ -66,6 +80,7 @@ export function Contact() {
             <a href="https://instagram.com/vj_3d_works" target="_blank" rel="noreferrer">@VJ_3D_WORKS</a>
           </div>
         </div>
+
         <div className="contact-row">
           <span style={{ fontSize: 22 }}>🚚</span>
           <div>
@@ -75,14 +90,17 @@ export function Contact() {
         </div>
       </div>
 
+      {/* ✅ FIX: Replaced "Send Email" button with WhatsApp button */}
       <div style={{ marginTop: 32, textAlign: 'center' }}>
-    <a
-  href="mailto:vj3dworks@gmail.com?subject=Query%20from%20Website&body=Hi%20VJ%203D%20Works,"
-  className="btn-primary"
-  style={{ display: 'inline-flex' }}
->
-  📧 Send Email
-</a>
+        <a
+          href={`${WA_BASE}?text=Hi%20VJ%203D%20Works!%20I%20have%20a%20query.`}
+          target="_blank"
+          rel="noreferrer"
+          className="btn-primary"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+        >
+          💬 Chat on WhatsApp
+        </a>
       </div>
     </div>
   );
@@ -90,28 +108,24 @@ export function Contact() {
 
 /* ── CUSTOM ORDER ── */
 export function CustomOrder() {
-  const [step,    setStep]    = useState(1);
-  const [form,    setForm]    = useState({ name: '', phone: '', idea: '', quantity: '1', budget: '' });
-  const [sent,    setSent]    = useState(false);
+  const [form, setForm] = useState({ name: '', phone: '', idea: '', quantity: '1', budget: '' });
+  const [sent, setSent] = useState(false);
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = e => {
     e.preventDefault();
-    const subject = encodeURIComponent("Custom 3D Print Request");
-const body = encodeURIComponent(
-  `Hi VJ 3D Works,
-
-I want a custom 3D print.
+    // ✅ FIX: Send to WhatsApp instead of email
+    const message = encodeURIComponent(
+`Hi VJ 3D Works! I want a custom 3D print.
 
 Name: ${form.name}
 Phone: ${form.phone}
 Idea: ${form.idea}
 Quantity: ${form.quantity}
-Budget: ${form.budget}`
-);
-
-window.location.href = `mailto:vj3dworks@gmail.com?subject=${subject}&body=${body}`;
+Budget: ${form.budget || 'Not specified'}`
+    );
+    window.open(`${WA_BASE}?text=${message}`, '_blank');
     setSent(true);
   };
 
@@ -164,9 +178,10 @@ window.location.href = `mailto:vj3dworks@gmail.com?subject=${subject}&body=${bod
           </div>
         </div>
 
-        <button type="submit" className="btn-primary">
-  📧 Send Request
-</button>
+        {/* ✅ FIX: WhatsApp send button */}
+        <button type="submit" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          💬 Send via WhatsApp
+        </button>
       </form>
 
       <div style={{ marginTop: 40, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 24 }}>

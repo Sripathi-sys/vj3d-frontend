@@ -39,21 +39,33 @@ const reviews = [
   { id:4, stars:'★★★★★', text:'The 3D photo frame is stunning! Exactly as shown. Great quality. Highly recommend VJ 3D Works.', author:'Sneha Reddy', location:'Hyderabad' },
 ];
 
+// ── Services data ──
+const SERVICES = [
+  { icon:'🪪', label:'Aadhaar'       },
+  { icon:'🚌', label:'Transport'     },
+  { icon:'🏦', label:'Banking'       },
+  { icon:'🏛️', label:'Govt Services' },
+  { icon:'📋', label:'Certificates'  },
+  { icon:'📶', label:'SIM / Recharge'},
+  { icon:'📄', label:'Applications'  },
+];
+
+const PARTNERS = [
+  { icon:'🏛️', label:'Meena CSC & E-Sevai Centre' },
+  { icon:'🚌', label:'JK Transports'               },
+];
+
 // ── Expandable Category Card ──
 function CategoryCard({ cat, products }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Filter products belonging to this category
   const catProducts = products.filter(p =>
-    p.category?._id === cat._id ||
-    p.category === cat._id
+    p.category?._id === cat._id || p.category === cat._id
   ).slice(0, 6);
 
   return (
     <div style={{ border:'1px solid var(--border)', borderRadius:'var(--radius-lg)', overflow:'hidden', background:'var(--bg)', transition:'box-shadow 0.2s', boxShadow: open ? '0 4px 20px rgba(0,0,0,0.1)' : 'none' }}>
-
-      {/* Category Header — click to expand */}
       <div
         onClick={() => setOpen(!open)}
         style={{ display:'flex', alignItems:'center', gap:14, padding:'16px 18px', cursor:'pointer', userSelect:'none', background: open ? 'var(--bg2)' : 'var(--bg)', transition:'background 0.2s' }}
@@ -71,7 +83,6 @@ function CategoryCard({ cat, products }) {
         </div>
       </div>
 
-      {/* Dropdown — products list */}
       {open && (
         <div style={{ borderTop:'1px solid var(--border)', padding:'16px 18px', background:'var(--bg)' }}>
           {catProducts.length === 0 ? (
@@ -89,10 +100,10 @@ function CategoryCard({ cat, products }) {
                     onMouseEnter={e => { e.currentTarget.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'; e.currentTarget.style.transform='translateY(-2px)'; }}
                     onMouseLeave={e => { e.currentTarget.style.boxShadow='none'; e.currentTarget.style.transform='translateY(0)'; }}
                   >
-                    {/* Product image */}
                     <div style={{ aspectRatio:'1/1', background:'var(--bg2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, overflow:'hidden' }}>
+                      {/* ✅ FIX: Use image URL directly — already full Cloudinary URL */}
                       {p.images?.[0]
-                        ? <img src={`${(process.env.REACT_APP_API_URL||'http://localhost:5000/api').replace('/api','')}${p.images[0]}`} alt={p.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                        ? <img src={p.images[0]} alt={p.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                         : p.emoji || '📦'
                       }
                     </div>
@@ -147,9 +158,9 @@ function Home() {
     load();
   }, []);
 
-  const showFeatured   = featured.length   > 0 ? featured   : DEMO_PRODUCTS;
-  const showNew        = newArrivals.length > 0 ? newArrivals: DEMO_PRODUCTS.slice(4);
-  const showCategories = categories.length  > 0 ? categories : DEMO_CATEGORIES;
+  const showFeatured   = featured.length   > 0 ? featured    : DEMO_PRODUCTS;
+  const showNew        = newArrivals.length > 0 ? newArrivals : DEMO_PRODUCTS.slice(4);
+  const showCategories = categories.length  > 0 ? categories  : DEMO_CATEGORIES;
 
   return (
     <>
@@ -208,32 +219,6 @@ function Home() {
         }
       </section>
 
-  {/*     {/* ── CATEGORIES WITH EXPANDABLE DROPDOWN ── */}
-     {/* <div className="section-alt"> }
-        <div className="section-inner">
-          <div className="sec-head">
-            <h2>Shop by Category</h2>
-            <Link to="/categories" className="view-all">View all →</Link>
-          </div>
-          <p style={{ fontSize:13, color:'var(--text3)', marginBottom:20, marginTop:-16 }}>
-            👆 Tap any category to see products
-          </p>
-          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            {showCategories.map((cat, i) => (
-              <CategoryCard
-                key={cat._id || i}
-                cat={cat}
-                products={allProducts}
-              />
-            ))}
-          </div>
-          <div className="view-all-wrap">
-            <Link to="/categories" className="view-all">VIEW ALL CATEGORIES →</Link>
-          </div>
-        </div>
-      </div> 
-
-
       {/* ── NEW ARRIVALS ── */}
       <section className="section">
         <div className="sec-head">
@@ -245,6 +230,83 @@ function Home() {
           : <div className="products-grid">{showNew.map(p => <ProductCard key={p._id} product={p} />)}</div>
         }
       </section>
+
+      {/* ── CHECK OUT OUR SERVICES ── */}
+      {/* ✅ NEW SECTION: Services section like the reference image */}
+      <div style={{
+        background: 'linear-gradient(135deg, #1a237e 0%, #283593 50%, #1565c0 100%)',
+        padding: '56px 24px',
+        textAlign: 'center',
+      }}>
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+          <h2 style={{ color: '#fff', fontSize: 'clamp(22px, 4vw, 32px)', fontFamily: 'var(--font-serif)', marginBottom: 10 }}>
+            Check Out Our Services
+          </h2>
+          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 14, marginBottom: 40 }}>
+            We offer a variety of useful services from our centre in Gingee.
+          </p>
+
+          {/* Service Icons */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 16, marginBottom: 36 }}>
+            {SERVICES.map((s, i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: 80 }}>
+                <div style={{
+                  width: 64, height: 64,
+                  background: 'rgba(255,255,255,0.12)',
+                  backdropFilter: 'blur(8px)',
+                  borderRadius: 16,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 28,
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  transition: 'background 0.2s, transform 0.2s',
+                  cursor: 'pointer',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.22)'; e.currentTarget.style.transform='translateY(-3px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.12)'; e.currentTarget.style.transform='translateY(0)'; }}
+                >
+                  {s.icon}
+                </div>
+                <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11.5, fontWeight: 500 }}>{s.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Explore Button */}
+          <a
+            href="https://wa.me/919159432954?text=Hi%20VJ%203D%20Works!%20I%20want%20to%20know%20more%20about%20your%20services."
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: '#43a047', color: '#fff',
+              padding: '12px 28px', borderRadius: 30,
+              fontWeight: 700, fontSize: 14.5,
+              textDecoration: 'none', marginBottom: 28,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+              transition: 'background 0.2s, transform 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background='#388e3c'; e.currentTarget.style.transform='translateY(-2px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background='#43a047'; e.currentTarget.style.transform='translateY(0)'; }}
+          >
+            ⚙️ Explore Our Services
+          </a>
+
+          {/* Partner Badges */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+            {PARTNERS.map((p, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: 20, padding: '6px 16px',
+                color: 'rgba(255,255,255,0.85)', fontSize: 12.5, fontWeight: 500,
+              }}>
+                {p.icon} {p.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* ── WHY CHOOSE US ── */}
       <div className="section-alt">
@@ -303,9 +365,6 @@ function Home() {
           Chat on WhatsApp
         </a>
       </section>
-
-    
-    
     </>
   );
 }
