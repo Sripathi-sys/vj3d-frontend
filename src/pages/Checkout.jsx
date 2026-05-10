@@ -4,8 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { createRazorpayOrder, verifyPayment } from '../api';
 
-const BASE = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000';
-
 function Checkout() {
   const { items, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
@@ -19,8 +17,8 @@ function Checkout() {
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const shipping   = totalPrice >= 999 ? 0 : 80;
-  const grandTotal = totalPrice + shipping;
+  // ✅ FIX 1: Removed delivery charge — shipping is always FREE
+  const grandTotal = totalPrice;
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -29,32 +27,27 @@ function Checkout() {
     setError('');
 
     try {
-      // 1️⃣ Create Razorpay order on backend
       const { data } = await createRazorpayOrder({ amount: grandTotal });
       if (!data.success) throw new Error('Could not initiate payment');
 
       const rzpOrder = data.order;
 
-      // 2️⃣ Open Razorpay popup
       const options = {
         key:         process.env.REACT_APP_RAZORPAY_KEY_ID,
-        amount:      rzpOrder.amount,   // already in paise from backend
+        amount:      rzpOrder.amount,
         currency:    'INR',
         name:        'VJ 3D Works',
         description: 'Custom 3D Print Order',
-        image:       '/logo192.png',    // optional: your logo
+        image:       '/logo192.png',
         order_id:    rzpOrder.id,
         prefill: {
           name:    form.customerName,
           email:   form.customerEmail,
           contact: form.customerPhone,
         },
-        notes: {
-          address: form.address,
-        },
+        notes: { address: form.address },
         theme: { color: '#2563eb' },
 
-        // 3️⃣ After successful payment
         handler: async (response) => {
           try {
             const orderData = {
@@ -77,23 +70,17 @@ function Checkout() {
 
             if (verify.data.success) {
               clearCart();
-              navigate('/order-success', {
-                state: { orderId: verify.data.orderId },
-              });
+              navigate('/order-success', { state: { orderId: verify.data.orderId } });
             } else {
               setError('Payment done but order saving failed. Please contact support.');
             }
           } catch (err) {
-            setError(
-              'Payment received but verification failed. ' +
-              'Contact support with Payment ID: ' + response.razorpay_payment_id
-            );
+            setError('Payment received but verification failed. Contact support with Payment ID: ' + response.razorpay_payment_id);
           } finally {
             setLoading(false);
           }
         },
 
-        // 4️⃣ If user closes popup
         modal: {
           ondismiss: () => {
             setError('Payment was cancelled. Please try again.');
@@ -103,13 +90,10 @@ function Checkout() {
       };
 
       const rzp = new window.Razorpay(options);
-
-      // 5️⃣ Handle payment failure inside popup
       rzp.on('payment.failed', (response) => {
         setError(`Payment failed: ${response.error.description}`);
         setLoading(false);
       });
-
       rzp.open();
 
     } catch (err) {
@@ -118,7 +102,6 @@ function Checkout() {
     }
   };
 
-  // ── Empty cart screen ──────────────────────────────────────────────────────
   if (items.length === 0) {
     return (
       <div className="success-page">
@@ -130,7 +113,6 @@ function Checkout() {
     );
   }
 
-  // ── Main checkout page ─────────────────────────────────────────────────────
   return (
     <div className="checkout-page">
       <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 28, marginBottom: 8, color: 'var(--text)' }}>
@@ -189,7 +171,6 @@ function Checkout() {
             <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Any special instructions for your order..." />
           </div>
 
-          {/* Payment info badge */}
           <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: 20, fontSize: 14, color: 'var(--text2)', display: 'flex', alignItems: 'center', gap: 8 }}>
             💳 <strong style={{ color: 'var(--text)' }}>Payment:</strong>
             &nbsp;Secure online payment via Razorpay — UPI, Card, NetBanking
@@ -207,9 +188,10 @@ function Checkout() {
           <div>
             {items.map(item => (
               <div className="order-item" key={item._id}>
-                <div style={{ width: 56, height: 56, background: 'var(--bg2)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
+                <div style={{ width: 56, height: 56, background: 'var(--bg2)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0, overflow: 'hidden' }}>
+                  {/* ✅ FIX 2: Use Cloudinary URL directly */}
                   {item.images?.[0]
-                    ? <img src={`${BASE}${item.images[0]}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius)' }} />
+                    ? <img src={item.images[0]} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius)' }} />
                     : item.emoji || '📦'}
                 </div>
                 <div style={{ flex: 1 }}>
@@ -225,11 +207,10 @@ function Checkout() {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, fontSize: 14, color: 'var(--text2)' }}>
               <span>Subtotal</span><span>₹{totalPrice}</span>
             </div>
+            {/* ✅ FIX 3: Show FREE shipping always */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, fontSize: 14, color: 'var(--text2)' }}>
               <span>Shipping</span>
-              <span style={{ color: shipping === 0 ? 'var(--green)' : 'var(--text)' }}>
-                {shipping === 0 ? 'FREE' : `₹${shipping}`}
-              </span>
+              <span style={{ color: 'var(--green)', fontWeight: 600 }}>FREE</span>
             </div>
           </div>
 
@@ -238,11 +219,7 @@ function Checkout() {
             <span>₹{grandTotal}</span>
           </div>
 
-          {totalPrice < 999 && (
-            <p style={{ fontSize: 12.5, color: 'var(--accent)', marginTop: 12, background: '#eff6ff', padding: '8px 12px', borderRadius: 'var(--radius)', border: '1px solid #bfdbfe' }}>
-              🚚 Add ₹{999 - totalPrice} more for FREE delivery!
-            </p>
-          )}
+          {/* ✅ FIX 4: Removed "add ₹X more for free delivery" message */}
         </div>
 
       </div>

@@ -2,8 +2,6 @@
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 
-const BASE = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000';
-
 function Cart() {
   const { items, cartOpen, setCartOpen, updateQty, removeFromCart, totalPrice } = useCart();
   const navigate = useNavigate();
@@ -16,7 +14,6 @@ function Cart() {
   return (
     <>
       <div className={`cart-overlay ${cartOpen ? 'open' : ''}`} onClick={() => setCartOpen(false)} />
-
       <div className={`cart-panel ${cartOpen ? 'open' : ''}`}>
         <div className="cart-header">
           <h3>Your Cart {items.length > 0 && <span style={{ color: 'var(--text3)', fontWeight: 400, fontSize: 14 }}>({items.length} item{items.length > 1 ? 's' : ''})</span>}</h3>
@@ -39,8 +36,9 @@ function Cart() {
             items.map(item => (
               <div className="cart-item" key={item._id}>
                 <div className="ci-img">
+                  {/* ✅ FIX: Use Cloudinary URL directly — no BASE prefix needed */}
                   {item.images?.[0]
-                    ? <img src={`${BASE}${item.images[0]}`} alt={item.name} />
+                    ? <img src={item.images[0]} alt={item.name} />
                     : item.emoji || '🖨️'
                   }
                 </div>
