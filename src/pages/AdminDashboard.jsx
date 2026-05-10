@@ -78,7 +78,10 @@ export function AdminProducts() {
   const [imageFile,    setImageFile]    = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const fileInputRef = useRef();
-  const BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api','');
+
+  // ✅ FIX 1: Removed BASE variable — Cloudinary URLs are already full https:// URLs,
+  // no need to prepend anything. Old code was making broken URLs like:
+  // "https://vj3d-backend.onrender.comhttps://res.cloudinary.com/..."
 
   const emptyForm = { name:'', description:'', price:'', originalPrice:'', emoji:'', badge:'', category:'', inStock:true, featured:false, isNewArrival:false, isCombo:false };
   const [form, setForm] = useState(emptyForm);
@@ -89,11 +92,17 @@ export function AdminProducts() {
   };
   useEffect(()=>{ load(); },[]);
 
+  // ✅ FIX 2: Use FileReader instead of URL.createObjectURL()
+  // URL.createObjectURL() creates a temporary blob URL that expires when the
+  // component re-renders or the modal closes — causing the preview to disappear.
+  // FileReader gives a stable base64 string that persists correctly.
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result);
+    reader.readAsDataURL(file);
   };
 
   const handleSave = async (e) => {
@@ -146,7 +155,12 @@ export function AdminProducts() {
                   <tr key={p._id}>
                     <td>
                       <div style={{width:52,height:52,background:'#f3f4f6',borderRadius:4,overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>
-                        {p.images?.[0] ? <img src={`${BASE}${p.images[0]}`} alt={p.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/> : (p.emoji||'📦')}
+                        {/* ✅ FIX 3: Use p.images[0] directly — it's already a full Cloudinary URL.
+                            Old code: <img src={`${BASE}${p.images[0]}`} /> was producing broken URLs */}
+                        {p.images?.[0]
+                          ? <img src={p.images[0]} alt={p.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                          : (p.emoji||'📦')
+                        }
                       </div>
                     </td>
                     <td style={{fontWeight:500,maxWidth:140}}>{p.name}</td>
