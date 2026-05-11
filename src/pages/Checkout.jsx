@@ -4,6 +4,54 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { createRazorpayOrder, verifyPayment } from '../api';
 
+// ── Shipping charges by state ──
+const SHIPPING_RATES = {
+  'Tamil Nadu':         60,
+  'Kerala':             80,
+  'Andhra Pradesh':    130,
+  'Telangana':         130,
+  'Karnataka':         130,
+  'Maharashtra':       130,
+  'Delhi':             130,
+  'Uttar Pradesh':     130,
+  'West Bengal':       130,
+  'Rajasthan':         130,
+  'Gujarat':           130,
+  'Madhya Pradesh':    130,
+  'Bihar':             130,
+  'Punjab':            130,
+  'Haryana':           130,
+  'Odisha':            130,
+  'Jharkhand':         130,
+  'Assam':             130,
+  'Chhattisgarh':      130,
+  'Uttarakhand':       130,
+  'Himachal Pradesh':  130,
+  'Jammu & Kashmir':   130,
+  'Goa':               130,
+  'Tripura':           130,
+  'Meghalaya':         130,
+  'Manipur':           130,
+  'Nagaland':          130,
+  'Arunachal Pradesh': 130,
+  'Mizoram':           130,
+  'Sikkim':            130,
+  'Puducherry':         60,
+  'Andaman & Nicobar': 130,
+  'Lakshadweep':       130,
+  'Chandigarh':        130,
+  'Dadra & Nagar Haveli': 130,
+  'Daman & Diu':       130,
+  'Ladakh':            130,
+};
+
+const STATE_LIST = Object.keys(SHIPPING_RATES).sort();
+
+function getShipping(state) {
+  if (!state) return 0;
+  return SHIPPING_RATES[state] || 130;
+}
+
 function Checkout() {
   const { items, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
@@ -12,17 +60,19 @@ function Checkout() {
 
   const [form, setForm] = useState({
     customerName: '', customerPhone: '', customerEmail: '',
-    address: '', city: '', pincode: '', notes: '',
+    address: '', city: '', state: '', pincode: '', notes: '',
   });
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
-  // ✅ FIX 1: Removed delivery charge — shipping is always FREE
-  const grandTotal = totalPrice;
+  // ── Shipping & total calculation ──
+  const shippingCharge = getShipping(form.state);
+  const grandTotal     = totalPrice + shippingCharge;
 
   const handleSubmit = async e => {
     e.preventDefault();
     if (items.length === 0) { setError('Your cart is empty!'); return; }
+    if (!form.state)        { setError('Please select your state.'); return; }
     setLoading(true);
     setError('');
 
@@ -58,7 +108,8 @@ function Checkout() {
                 price:   i.price,
                 qty:     i.qty,
               })),
-              totalAmount: grandTotal,
+              totalAmount:    grandTotal,
+              shippingCharge: shippingCharge,
             };
 
             const verify = await verifyPayment({
@@ -166,6 +217,50 @@ function Checkout() {
             </div>
           </div>
 
+          {/* ── STATE SELECTOR ── */}
+          <div className="form-group">
+            <label>State *</label>
+            <select
+              name="state"
+              value={form.state}
+              onChange={handleChange}
+              required
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)',
+                fontSize: 14,
+                background: 'var(--bg)',
+                color: form.state ? 'var(--text)' : 'var(--text3)',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="">Select your state</option>
+              {STATE_LIST.map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* ── SHIPPING INFO BANNER ── */}
+          {form.state && (
+            <div style={{
+              background: shippingCharge === 60 ? '#f0fdf4' : '#eff6ff',
+              border: `1px solid ${shippingCharge === 60 ? '#86efac' : '#93c5fd'}`,
+              borderRadius: 'var(--radius)',
+              padding: '10px 14px',
+              marginBottom: 16,
+              fontSize: 13.5,
+              color: shippingCharge === 60 ? '#15803d' : '#1d4ed8',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}>
+              🚚 Shipping to <strong>{form.state}</strong>: ₹{shippingCharge}
+            </div>
+          )}
+
           <div className="form-group">
             <label>Order Notes</label>
             <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Any special instructions for your order..." />
@@ -189,7 +284,6 @@ function Checkout() {
             {items.map(item => (
               <div className="order-item" key={item._id}>
                 <div style={{ width: 56, height: 56, background: 'var(--bg2)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0, overflow: 'hidden' }}>
-                  {/* ✅ FIX 2: Use Cloudinary URL directly */}
                   {item.images?.[0]
                     ? <img src={item.images[0]} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius)' }} />
                     : item.emoji || '📦'}
@@ -207,10 +301,11 @@ function Checkout() {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, fontSize: 14, color: 'var(--text2)' }}>
               <span>Subtotal</span><span>₹{totalPrice}</span>
             </div>
-            {/* ✅ FIX 3: Show FREE shipping always */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, fontSize: 14, color: 'var(--text2)' }}>
               <span>Shipping</span>
-              <span style={{ color: 'var(--green)', fontWeight: 600 }}>FREE</span>
+              <span style={{ fontWeight: 600, color: shippingCharge === 0 ? 'var(--text3)' : 'var(--text)' }}>
+                {form.state ? `₹${shippingCharge}` : 'Select state'}
+              </span>
             </div>
           </div>
 
@@ -219,7 +314,14 @@ function Checkout() {
             <span>₹{grandTotal}</span>
           </div>
 
-          {/* ✅ FIX 4: Removed "add ₹X more for free delivery" message */}
+          {/* ── SHIPPING RATES INFO ── */}
+          <div style={{ marginTop: 16, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '12px 14px', fontSize: 12.5, color: 'var(--text3)', lineHeight: 1.8 }}>
+            🚚 <strong style={{ color: 'var(--text2)' }}>Shipping Rates:</strong><br />
+            Tamil Nadu & Puducherry — ₹60<br />
+            Kerala — ₹80<br />
+            Other states — ₹130
+          </div>
+
         </div>
 
       </div>
