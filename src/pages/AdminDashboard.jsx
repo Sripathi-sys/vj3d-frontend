@@ -1,6 +1,5 @@
 
 // src/pages/AdminDashboard.jsx
-// ============================================
 
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -11,7 +10,7 @@ import {
   getCategories,
   createProduct,
   updateProduct,
-  deleteProduct,
+ deleteProduct,
   createCategory,
   updateCategory,
   deleteCategory,
@@ -278,13 +277,17 @@ export function Dashboard() {
     </div>
   );
 }
+
+// ============================================
+// PRODUCTS
+// ============================================
+
 export function AdminProducts() {
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
-
   const [saving, setSaving] = useState(false);
 
   const [editingId, setEditingId] = useState(null);
@@ -434,12 +437,7 @@ export function AdminProducts() {
 
     deleteProduct(id)
       .then(()=>load())
-      .catch(err =>
-        alert(
-          err.response?.data?.message ||
-          'Delete failed'
-        )
-      );
+      .catch(()=>alert('Delete failed'));
 
   };
 
@@ -468,71 +466,6 @@ export function AdminProducts() {
             + Add Product
           </button>
 
-          <table className="admin-table">
-
-            <thead>
-              <tr>
-                <th>Photo</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-
-              {products.map(p => (
-
-                <tr key={p._id}>
-
-                  <td>
-                    {p.images?.[0]
-                      ? (
-                        <img
-                          src={p.images[0]}
-                          alt={p.name}
-                          style={{
-                            width:50,
-                            height:50,
-                            objectFit:'cover',
-                            borderRadius:4
-                          }}
-                        />
-                      )
-                      : '📦'
-                    }
-                  </td>
-
-                  <td>{p.name}</td>
-
-                  <td>₹{p.price}</td>
-
-                  <td style={{ display:'flex', gap:8 }}>
-
-                    <button
-                      style={editBtnStyle}
-                      onClick={() => handleEdit(p)}
-                    >
-                      ✏️ Edit
-                    </button>
-
-                    <button
-                      style={delBtnStyle}
-                      onClick={() => handleDelete(p._id)}
-                    >
-                      🗑️ Delete
-                    </button>
-
-                  </td>
-
-                </tr>
-
-              ))}
-
-            </tbody>
-
-          </table>
-
         </div>
 
       </div>
@@ -540,167 +473,4 @@ export function AdminProducts() {
     </div>
   );
 }
-// ============================================
-// ORDERS
-// ============================================
-
-export function AdminOrders() {
-
-  const [orders, setOrders] = useState([]);
-
-  const load = () => {
-    getOrders()
-      .then(r => setOrders(r.data))
-      .catch(()=>{});
-  };
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  const handleStatus = (id, status) => {
-
-    updateStatus(id, status)
-      .then(()=>load())
-      .catch(err =>
-        alert(
-          err.response?.data?.message ||
-          'Error'
-        )
-      );
-
-  };
-
-  return (
-    <div className="admin-layout">
-
-      <Sidebar />
-
-      <div className="admin-main">
-
-        <div className="admin-topbar">
-          <h2>Manage Orders</h2>
-        </div>
-
-      </div>
-
-    </div>
-  );
-}
-
-// ============================================
-// CATEGORIES
-// ============================================
-
-export function AdminCategories() {
-
-  const [cats, setCats] = useState([]);
-
-  const [showModal, setShowModal] = useState(false);
-
-  const [saving, setSaving] = useState(false);
-
-  const [editingId, setEditingId] = useState(null);
-
-  const [form, setForm] = useState({
-    name:'',
-    subtitle:'',
-    emoji:''
-  });
-
-  const load = () => {
-
-    getCategories()
-      .then(r => setCats(r.data))
-      .catch(()=>{});
-
-  };
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  const handleEdit = (cat) => {
-
-    setEditingId(cat._id);
-
-    setForm({
-      name: cat.name || '',
-      subtitle: cat.subtitle || '',
-      emoji: cat.emoji || ''
-    });
-
-    setShowModal(true);
-
-  };
-
-  const handleSave = async (e) => {
-
-    e.preventDefault();
-
-    setSaving(true);
-
-    try {
-
-      if (editingId) {
-        await updateCategory(editingId, form);
-      } else {
-        await createCategory(form);
-      }
-
-      setShowModal(false);
-
-      setEditingId(null);
-
-      setForm({
-        name:'',
-        subtitle:'',
-        emoji:''
-      });
-
-      load();
-
-    } catch (err) {
-
-      alert(
-        err.response?.data?.message ||
-        'Error saving category'
-      );
-
-    } finally {
-
-      setSaving(false);
-
-    }
-
-  };
-
-  const handleDelete = (id) => {
-
-    deleteCategory(id)
-      .then(()=>load())
-      .catch(err =>
-        alert(
-          err.response?.data?.message ||
-          'Delete failed'
-        )
-      );
-
-  };
-
-  return (
-    <div className="admin-layout">
-
-      <Sidebar />
-
-      <div className="admin-main">
-
-        <div className="admin-topbar">
-          <h2>Manage Categories</h2>
-        </div>
-
-      </div>
-
-    </div>
-  );
-}
+```
