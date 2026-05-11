@@ -39,7 +39,6 @@ const reviews = [
   { id:4, stars:'★★★★★', text:'The 3D photo frame is stunning! Exactly as shown. Great quality. Highly recommend VJ 3D Works.', author:'Sneha Reddy', location:'Hyderabad' },
 ];
 
-// ── Services data ──
 const SERVICES = [
   { icon:'🪪', label:'Aadhaar'       },
   { icon:'🚌', label:'Transport'     },
@@ -101,7 +100,6 @@ function CategoryCard({ cat, products }) {
                     onMouseLeave={e => { e.currentTarget.style.boxShadow='none'; e.currentTarget.style.transform='translateY(0)'; }}
                   >
                     <div style={{ aspectRatio:'1/1', background:'var(--bg2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, overflow:'hidden' }}>
-                      {/* ✅ FIX: Use image URL directly — already full Cloudinary URL */}
                       {p.images?.[0]
                         ? <img src={p.images[0]} alt={p.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                         : p.emoji || '📦'
@@ -135,6 +133,8 @@ function Home() {
   const [categories,  setCategories]  = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [loading,     setLoading]     = useState(true);
+  // ✅ FIX: Track whether API loaded real data successfully
+  const [apiLoaded,   setApiLoaded]   = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -145,12 +145,27 @@ function Home() {
           getCategories(),
           getProducts({}),
         ]);
-        setFeatured(f.data.slice(0, 8));
-        setNewArrivals(n.data.slice(0, 8));
-        setCategories(cats.data.slice(0, 8));
-        setAllProducts(all.data);
-      } catch {
-        // fallback to demo
+
+        // ✅ FIX: Only update state if we actually got data back
+        const featuredData    = Array.isArray(f?.data)    ? f.data    : [];
+        const newArrivalData  = Array.isArray(n?.data)    ? n.data    : [];
+        const categoriesData  = Array.isArray(cats?.data) ? cats.data : [];
+        const allProductsData = Array.isArray(all?.data)  ? all.data  : [];
+
+        setFeatured(featuredData.slice(0, 8));
+        setNewArrivals(newArrivalData.slice(0, 8));
+        setCategories(categoriesData.slice(0, 8));
+        setAllProducts(allProductsData);
+
+        // ✅ FIX: Mark API as loaded only if we got at least some real products
+        if (featuredData.length > 0 || allProductsData.length > 0) {
+          setApiLoaded(true);
+        }
+      } catch (err) {
+        // ✅ FIX: Log the real error so you can debug API/CORS/URL issues
+        console.error('❌ Home API error:', err?.message || err);
+        console.warn('⚠️ Falling back to demo products. Check REACT_APP_API_URL in your .env file.');
+        // State stays empty → falls back to DEMO_PRODUCTS below
       } finally {
         setLoading(false);
       }
@@ -158,9 +173,10 @@ function Home() {
     load();
   }, []);
 
-  const showFeatured   = featured.length   > 0 ? featured    : DEMO_PRODUCTS;
-  const showNew        = newArrivals.length > 0 ? newArrivals : DEMO_PRODUCTS.slice(4);
-  const showCategories = categories.length  > 0 ? categories  : DEMO_CATEGORIES;
+  // ✅ FIX: Only use DEMO_PRODUCTS if API didn't load real data
+  const showFeatured   = apiLoaded && featured.length   > 0 ? featured    : (apiLoaded ? [] : DEMO_PRODUCTS);
+  const showNew        = apiLoaded && newArrivals.length > 0 ? newArrivals : (apiLoaded ? [] : DEMO_PRODUCTS.slice(4));
+  const showCategories = categories.length > 0 ? categories : DEMO_CATEGORIES;
 
   return (
     <>
@@ -213,10 +229,18 @@ function Home() {
           <h2>Best Sellers</h2>
           <Link to="/products" className="view-all">View all →</Link>
         </div>
-        {loading
-          ? <SkeletonGrid />
-          : <div className="products-grid">{showFeatured.map(p => <ProductCard key={p._id} product={p} />)}</div>
-        }
+        {loading ? (
+          <SkeletonGrid />
+        ) : showFeatured.length > 0 ? (
+          <div className="products-grid">
+            {showFeatured.map(p => <ProductCard key={p._id} product={p} />)}
+          </div>
+        ) : (
+          // ✅ FIX: API loaded but no featured products — show a friendly message
+          <p style={{ color:'var(--text3)', fontSize:14, textAlign:'center', padding:'32px 0' }}>
+            No featured products yet. <Link to="/products" style={{ color:'var(--accent)' }}>Browse all products →</Link>
+          </p>
+        )}
       </section>
 
       {/* ── NEW ARRIVALS ── */}
@@ -225,14 +249,20 @@ function Home() {
           <h2>New Arrivals</h2>
           <Link to="/products?newArrival=true" className="view-all">View all →</Link>
         </div>
-        {loading
-          ? <SkeletonGrid />
-          : <div className="products-grid">{showNew.map(p => <ProductCard key={p._id} product={p} />)}</div>
-        }
+        {loading ? (
+          <SkeletonGrid />
+        ) : showNew.length > 0 ? (
+          <div className="products-grid">
+            {showNew.map(p => <ProductCard key={p._id} product={p} />)}
+          </div>
+        ) : (
+          <p style={{ color:'var(--text3)', fontSize:14, textAlign:'center', padding:'32px 0' }}>
+            No new arrivals yet. <Link to="/products" style={{ color:'var(--accent)' }}>Browse all products →</Link>
+          </p>
+        )}
       </section>
 
       {/* ── CHECK OUT OUR SERVICES ── */}
-      {/* ✅ NEW SECTION: Services section like the reference image */}
       <div style={{
         background: 'linear-gradient(135deg, #1a237e 0%, #283593 50%, #1565c0 100%)',
         padding: '56px 24px',
@@ -246,7 +276,6 @@ function Home() {
             We offer a variety of useful services from our centre in Gingee.
           </p>
 
-          {/* Service Icons */}
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 16, marginBottom: 36 }}>
             {SERVICES.map((s, i) => (
               <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: 80 }}>
@@ -271,7 +300,6 @@ function Home() {
             ))}
           </div>
 
-          {/* Explore Button */}
           <a
             href="https://wa.me/919159432954?text=Hi%20VJ%203D%20Works!%20I%20want%20to%20know%20more%20about%20your%20services."
             target="_blank"
@@ -291,7 +319,6 @@ function Home() {
             ⚙️ Explore Our Services
           </a>
 
-          {/* Partner Badges */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
             {PARTNERS.map((p, i) => (
               <div key={i} style={{
