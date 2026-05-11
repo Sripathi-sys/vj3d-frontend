@@ -281,7 +281,165 @@ export function Dashboard() {
 // ============================================
 // PRODUCTS
 // ============================================
+
 export function AdminProducts() {
+
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+
+  const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const [editingId, setEditingId] = useState(null);
+
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+
+  const fileInputRef = useRef();
+
+  const emptyForm = {
+    name:'',
+    description:'',
+    price:'',
+    originalPrice:'',
+    emoji:'',
+    badge:'',
+    category:'',
+    inStock:true,
+    featured:false,
+    isNewArrival:false,
+    isCombo:false
+  };
+
+  const [form, setForm] = useState(emptyForm);
+
+  const load = () => {
+
+    getProducts({})
+      .then(r => setProducts(r.data))
+      .catch(()=>{});
+
+    getCategories()
+      .then(r => setCategories(r.data))
+      .catch(()=>{});
+
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const handleImageChange = (e) => {
+
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    setImageFile(file);
+
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+
+    reader.readAsDataURL(file);
+
+  };
+
+  const handleEdit = (product) => {
+
+    setEditingId(product._id);
+
+    setForm({
+      name: product.name || '',
+      description: product.description || '',
+      price: product.price || '',
+      originalPrice: product.originalPrice || '',
+      emoji: product.emoji || '',
+      badge: product.badge || '',
+      category: product.category?._id || '',
+      inStock: product.inStock,
+      featured: product.featured,
+      isNewArrival: product.isNewArrival,
+      isCombo: product.isCombo
+    });
+
+    setImagePreview(product.images?.[0] || '');
+
+    setShowModal(true);
+
+  };
+
+  const handleSave = async (e) => {
+
+    e.preventDefault();
+
+    setSaving(true);
+
+    try {
+
+      const data = new FormData();
+
+      data.append('name', form.name);
+      data.append('description', form.description);
+      data.append('price', form.price);
+      data.append('originalPrice', form.originalPrice);
+      data.append('emoji', form.emoji);
+      data.append('badge', form.badge);
+      data.append('inStock', form.inStock);
+      data.append('featured', form.featured);
+      data.append('isNewArrival', form.isNewArrival);
+      data.append('isCombo', form.isCombo);
+
+      if (form.category) {
+        data.append('category', form.category);
+      }
+
+      if (imageFile) {
+        data.append('images', imageFile);
+      }
+
+      if (editingId) {
+        await updateProduct(editingId, data);
+      } else {
+        await createProduct(data);
+      }
+
+      setShowModal(false);
+
+      setForm(emptyForm);
+
+      setEditingId(null);
+
+      setImageFile(null);
+
+      setImagePreview('');
+
+      load();
+
+    } catch (err) {
+
+      alert(
+        err.response?.data?.message ||
+        'Error saving product'
+      );
+
+    } finally {
+
+      setSaving(false);
+
+    }
+
+  };
+
+  const handleDelete = (id) => {
+
+    deleteProduct(id)
+      .then(()=>load())
+      .catch(()=>alert('Delete failed'));
+
+  };
 
   return (
     <div className="admin-layout">
@@ -296,7 +454,17 @@ export function AdminProducts() {
 
         <div className="admin-content">
 
-          <h3>Products Page Working ✅</h3>
+          <button
+            style={addBtnStyle}
+            onClick={() => {
+              setShowModal(true);
+              setEditingId(null);
+              setForm(emptyForm);
+              setImagePreview('');
+            }}
+          >
+            + Add Product
+          </button>
 
         </div>
 
@@ -305,53 +473,4 @@ export function AdminProducts() {
     </div>
   );
 }
-
-export function AdminOrders() {
-
-  return (
-    <div className="admin-layout">
-
-      <Sidebar />
-
-      <div className="admin-main">
-
-        <div className="admin-topbar">
-          <h2>Manage Orders</h2>
-        </div>
-
-        <div className="admin-content">
-
-          <h3>Orders Page Working ✅</h3>
-
-        </div>
-
-      </div>
-
-    </div>
-  );
-}
-
-export function AdminCategories() {
-
-  return (
-    <div className="admin-layout">
-
-      <Sidebar />
-
-      <div className="admin-main">
-
-        <div className="admin-topbar">
-          <h2>Manage Categories</h2>
-        </div>
-
-        <div className="admin-content">
-
-          <h3>Categories Page Working ✅</h3>
-
-        </div>
-
-      </div>
-
-    </div>
-  );
-}
+```
