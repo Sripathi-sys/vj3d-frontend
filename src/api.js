@@ -1,4 +1,3 @@
-```js
 // src/api.js
 import axios from 'axios';
 
@@ -7,7 +6,7 @@ const API = axios.create({
   withCredentials: true,
 });
 
-// ================= AUTH TOKEN =================
+// ================= REQUEST INTERCEPTOR =================
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('adminToken');
@@ -21,7 +20,7 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ================= ERROR HANDLER =================
+// ================= RESPONSE INTERCEPTOR =================
 API.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -30,104 +29,61 @@ API.interceptors.response.use(
   }
 );
 
-// ======================================================
-// PRODUCTS
-// ======================================================
-
-// Get all products
+// ================= PRODUCTS =================
 export const getProducts = (params) =>
   API.get('/products', { params });
 
-// Get single product
 export const getProduct = (id) =>
   API.get(`/products/${id}`);
 
-// Create product
 export const createProduct = (data) =>
   API.post('/products', data);
 
-// ✅ Update product
 export const updateProduct = (id, data) =>
   API.put(`/products/${id}`, data);
 
-// Delete product
 export const deleteProduct = (id) =>
   API.delete(`/products/${id}`);
 
-
-// ======================================================
-// CATEGORIES
-// ======================================================
-
-// Get all categories
+// ================= CATEGORIES =================
 export const getCategories = () =>
   API.get('/categories');
 
-// Create category
 export const createCategory = (data) =>
   API.post('/categories', data);
 
-// ✅ Update category
 export const updateCategory = (id, data) =>
   API.put(`/categories/${id}`, data);
 
-// Delete category
 export const deleteCategory = (id) =>
   API.delete(`/categories/${id}`);
 
-
-// ======================================================
-// ORDERS
-// ======================================================
-
-// Place order
+// ================= ORDERS =================
 export const placeOrder = (data) =>
   API.post('/orders', data);
 
-// Get all orders
 export const getOrders = () =>
   API.get('/orders');
 
-// Update order status
 export const updateStatus = (id, status) =>
   API.put(`/orders/${id}/status`, { status });
 
 // ================= RAZORPAY =================
-
-// Create Razorpay order
 export const createRazorpayOrder = (data) =>
   API.post('/orders/create-razorpay-order', data);
 
-// Verify payment
 export const verifyPayment = (data) =>
   API.post('/orders/verify-payment', data);
 
-
-// ======================================================
-// AUTH
-// ======================================================
-
-// Admin login
+// ================= AUTH =================
 export const adminLogin = (data) =>
   API.post('/auth/login', data);
 
-// Setup admin
 export const setupAdmin = (data) =>
   API.post('/auth/setup', data);
 
-
-// ======================================================
-// CONTACT
-// ======================================================
-
-// Send contact form
+// ================= CONTACT =================
 export const sendContact = (data) =>
   API.post('/contact', data);
 
-
-// ======================================================
-// EXPORT API
-// ======================================================
-
 export default API;
-```

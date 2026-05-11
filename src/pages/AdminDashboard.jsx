@@ -1,5 +1,4 @@
-```js
-// ============================================
+
 // src/pages/AdminDashboard.jsx
 // ============================================
 
@@ -279,11 +278,6 @@ export function Dashboard() {
     </div>
   );
 }
-
-// ============================================
-// PRODUCTS
-// ============================================
-
 export function AdminProducts() {
 
   const [products, setProducts] = useState([]);
@@ -460,12 +454,92 @@ export function AdminProducts() {
           <h2>Manage Products</h2>
         </div>
 
+        <div className="admin-content">
+
+          <button
+            style={addBtnStyle}
+            onClick={() => {
+              setShowModal(true);
+              setEditingId(null);
+              setForm(emptyForm);
+              setImagePreview('');
+            }}
+          >
+            + Add Product
+          </button>
+
+          <table className="admin-table">
+
+            <thead>
+              <tr>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {products.map(p => (
+
+                <tr key={p._id}>
+
+                  <td>
+                    {p.images?.[0]
+                      ? (
+                        <img
+                          src={p.images[0]}
+                          alt={p.name}
+                          style={{
+                            width:50,
+                            height:50,
+                            objectFit:'cover',
+                            borderRadius:4
+                          }}
+                        />
+                      )
+                      : '📦'
+                    }
+                  </td>
+
+                  <td>{p.name}</td>
+
+                  <td>₹{p.price}</td>
+
+                  <td style={{ display:'flex', gap:8 }}>
+
+                    <button
+                      style={editBtnStyle}
+                      onClick={() => handleEdit(p)}
+                    >
+                      ✏️ Edit
+                    </button>
+
+                    <button
+                      style={delBtnStyle}
+                      onClick={() => handleDelete(p._id)}
+                    >
+                      🗑️ Delete
+                    </button>
+
+                  </td>
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
       </div>
 
     </div>
   );
 }
-
 // ============================================
 // ORDERS
 // ============================================
@@ -630,4 +704,3 @@ export function AdminCategories() {
     </div>
   );
 }
-```
