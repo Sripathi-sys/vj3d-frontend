@@ -1,5 +1,7 @@
-```jsx
+```js
+// ============================================
 // src/pages/AdminDashboard.jsx
+// ============================================
 
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -17,9 +19,9 @@ import {
   updateStatus
 } from '../api';
 
-// ─────────────────────────────────────────────
+// ============================================
 // Sidebar
-// ─────────────────────────────────────────────
+// ============================================
 
 function Sidebar() {
 
@@ -55,9 +57,7 @@ function Sidebar() {
       </div>
 
       <nav className="admin-nav">
-
         {links.map(l => (
-
           <Link
             key={l.to}
             to={l.to}
@@ -66,7 +66,6 @@ function Sidebar() {
             {l.icon} {l.label}
           </Link>
         ))}
-
       </nav>
 
       <button
@@ -92,9 +91,9 @@ function Sidebar() {
   );
 }
 
-// ─────────────────────────────────────────────
+// ============================================
 // Styles
-// ─────────────────────────────────────────────
+// ============================================
 
 const overlayStyle = {
   position:'fixed',
@@ -209,9 +208,9 @@ const closeBtnStyle = {
   fontWeight:700
 };
 
-// ─────────────────────────────────────────────
+// ============================================
 // Dashboard
-// ─────────────────────────────────────────────
+// ============================================
 
 export function Dashboard() {
 
@@ -233,10 +232,10 @@ export function Dashboard() {
         const orders = o.data;
 
         setStats({
-          products:p.data.length,
-          orders:orders.length,
-          revenue:orders.reduce((s,x)=>s+x.totalAmount,0),
-          pending:orders.filter(x=>x.status==='pending').length
+          products: p.data.length,
+          orders: orders.length,
+          revenue: orders.reduce((s,x)=>s+x.totalAmount,0),
+          pending: orders.filter(x=>x.status==='pending').length
         });
 
       })
@@ -273,16 +272,6 @@ export function Dashboard() {
 
           </div>
 
-          <p
-            style={{
-              color:'var(--text3)',
-              fontSize:14,
-              marginTop:12
-            }}
-          >
-            Welcome to VJ 3D Works admin panel.
-          </p>
-
         </div>
 
       </div>
@@ -291,30 +280,250 @@ export function Dashboard() {
   );
 }
 
-// ─────────────────────────────────────────────
-// Products
-// ─────────────────────────────────────────────
+// ============================================
+// PRODUCTS
+// ============================================
 
 export function AdminProducts() {
-  return <div>Products Section Updated Successfully</div>;
+
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+
+  const [showModal, setShowModal] = useState(false);
+
+  const [saving, setSaving] = useState(false);
+
+  const [editingId, setEditingId] = useState(null);
+
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+
+  const fileInputRef = useRef();
+
+  const emptyForm = {
+    name:'',
+    description:'',
+    price:'',
+    originalPrice:'',
+    emoji:'',
+    badge:'',
+    category:'',
+    inStock:true,
+    featured:false,
+    isNewArrival:false,
+    isCombo:false
+  };
+
+  const [form, setForm] = useState(emptyForm);
+
+  const load = () => {
+
+    getProducts({})
+      .then(r => setProducts(r.data))
+      .catch(()=>{});
+
+    getCategories()
+      .then(r => setCategories(r.data))
+      .catch(()=>{});
+
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const handleImageChange = (e) => {
+
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    setImageFile(file);
+
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+
+    reader.readAsDataURL(file);
+
+  };
+
+  const handleEdit = (product) => {
+
+    setEditingId(product._id);
+
+    setForm({
+      name: product.name || '',
+      description: product.description || '',
+      price: product.price || '',
+      originalPrice: product.originalPrice || '',
+      emoji: product.emoji || '',
+      badge: product.badge || '',
+      category: product.category?._id || '',
+      inStock: product.inStock,
+      featured: product.featured,
+      isNewArrival: product.isNewArrival,
+      isCombo: product.isCombo
+    });
+
+    setImagePreview(product.images?.[0] || '');
+
+    setShowModal(true);
+
+  };
+
+  const handleSave = async (e) => {
+
+    e.preventDefault();
+
+    setSaving(true);
+
+    try {
+
+      const data = new FormData();
+
+      data.append('name', form.name);
+      data.append('description', form.description);
+      data.append('price', form.price);
+      data.append('originalPrice', form.originalPrice);
+      data.append('emoji', form.emoji);
+      data.append('badge', form.badge);
+      data.append('inStock', form.inStock);
+      data.append('featured', form.featured);
+      data.append('isNewArrival', form.isNewArrival);
+      data.append('isCombo', form.isCombo);
+
+      if (form.category) {
+        data.append('category', form.category);
+      }
+
+      if (imageFile) {
+        data.append('images', imageFile);
+      }
+
+      if (editingId) {
+        await updateProduct(editingId, data);
+      } else {
+        await createProduct(data);
+      }
+
+      setShowModal(false);
+
+      setForm(emptyForm);
+
+      setEditingId(null);
+
+      setImageFile(null);
+
+      setImagePreview('');
+
+      load();
+
+    } catch (err) {
+
+      alert(
+        err.response?.data?.message ||
+        'Error saving product'
+      );
+
+    } finally {
+
+      setSaving(false);
+
+    }
+
+  };
+
+  const handleDelete = (id) => {
+
+    deleteProduct(id)
+      .then(()=>load())
+      .catch(err =>
+        alert(
+          err.response?.data?.message ||
+          'Delete failed'
+        )
+      );
+
+  };
+
+  return (
+    <div className="admin-layout">
+
+      <Sidebar />
+
+      <div className="admin-main">
+
+        <div className="admin-topbar">
+          <h2>Manage Products</h2>
+        </div>
+
+      </div>
+
+    </div>
+  );
 }
 
-// ─────────────────────────────────────────────
-// Orders
-// ─────────────────────────────────────────────
+// ============================================
+// ORDERS
+// ============================================
 
 export function AdminOrders() {
-  return <div>Orders Section</div>;
+
+  const [orders, setOrders] = useState([]);
+
+  const load = () => {
+    getOrders()
+      .then(r => setOrders(r.data))
+      .catch(()=>{});
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const handleStatus = (id, status) => {
+
+    updateStatus(id, status)
+      .then(()=>load())
+      .catch(err =>
+        alert(
+          err.response?.data?.message ||
+          'Error'
+        )
+      );
+
+  };
+
+  return (
+    <div className="admin-layout">
+
+      <Sidebar />
+
+      <div className="admin-main">
+
+        <div className="admin-topbar">
+          <h2>Manage Orders</h2>
+        </div>
+
+      </div>
+
+    </div>
+  );
 }
 
-// ─────────────────────────────────────────────
-// Categories
-// ─────────────────────────────────────────────
+// ============================================
+// CATEGORIES
+// ============================================
 
 export function AdminCategories() {
 
   const [cats, setCats] = useState([]);
+
   const [showModal, setShowModal] = useState(false);
+
   const [saving, setSaving] = useState(false);
 
   const [editingId, setEditingId] = useState(null);
@@ -326,9 +535,11 @@ export function AdminCategories() {
   });
 
   const load = () => {
+
     getCategories()
       .then(r => setCats(r.data))
-      .catch(() => {});
+      .catch(()=>{});
+
   };
 
   useEffect(() => {
@@ -346,6 +557,7 @@ export function AdminCategories() {
     });
 
     setShowModal(true);
+
   };
 
   const handleSave = async (e) => {
@@ -376,21 +588,30 @@ export function AdminCategories() {
 
     } catch (err) {
 
-      alert(err.response?.data?.message || 'Error saving category');
+      alert(
+        err.response?.data?.message ||
+        'Error saving category'
+      );
 
     } finally {
 
       setSaving(false);
+
     }
+
   };
 
   const handleDelete = (id) => {
 
     deleteCategory(id)
-      .then(() => load())
+      .then(()=>load())
       .catch(err =>
-        alert(err.response?.data?.message || 'Delete failed')
+        alert(
+          err.response?.data?.message ||
+          'Delete failed'
+        )
       );
+
   };
 
   return (
@@ -402,229 +623,6 @@ export function AdminCategories() {
 
         <div className="admin-topbar">
           <h2>Manage Categories</h2>
-        </div>
-
-        <div className="admin-content">
-
-          <button
-            style={addBtnStyle}
-            onClick={() => {
-              setShowModal(true);
-              setEditingId(null);
-
-              setForm({
-                name:'',
-                subtitle:'',
-                emoji:''
-              });
-            }}
-          >
-            + Add Category
-          </button>
-
-          <table className="admin-table">
-
-            <thead>
-              <tr>
-                <th>Emoji</th>
-                <th>Name</th>
-                <th>Subtitle</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-
-              {cats.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={4}
-                    style={{
-                      textAlign:'center',
-                      color:'#888',
-                      padding:40
-                    }}
-                  >
-                    No categories yet
-                  </td>
-                </tr>
-              )}
-
-              {cats.map(c => (
-
-                <tr key={c._id}>
-
-                  <td style={{fontSize:26}}>
-                    {c.emoji}
-                  </td>
-
-                  <td style={{fontWeight:600}}>
-                    {c.name}
-                  </td>
-
-                  <td style={{color:'#888',fontSize:13}}>
-                    {c.subtitle}
-                  </td>
-
-                  <td style={{display:'flex',gap:8}}>
-
-                    <button
-                      onClick={() => handleEdit(c)}
-                      style={editBtnStyle}
-                    >
-                      ✏️ Edit
-                    </button>
-
-                    <button
-                      style={delBtnStyle}
-                      onClick={() => handleDelete(c._id)}
-                    >
-                      🗑️ Delete
-                    </button>
-
-                  </td>
-
-                </tr>
-              ))}
-
-            </tbody>
-
-          </table>
-
-          {showModal && (
-
-            <div
-              style={overlayStyle}
-              onClick={() => {
-
-                setShowModal(false);
-
-                setEditingId(null);
-
-                setForm({
-                  name:'',
-                  subtitle:'',
-                  emoji:''
-                });
-              }}
-            >
-
-              <div
-                style={modalStyle}
-                onClick={e => e.stopPropagation()}
-              >
-
-                <button
-                  style={closeBtnStyle}
-                  onClick={() => {
-
-                    setShowModal(false);
-
-                    setEditingId(null);
-
-                    setForm({
-                      name:'',
-                      subtitle:'',
-                      emoji:''
-                    });
-                  }}
-                >
-                  ✕
-                </button>
-
-                <h3
-                  style={{
-                    fontFamily:'var(--font-serif)',
-                    fontSize:22,
-                    marginBottom:24
-                  }}
-                >
-                  {editingId
-                    ? 'Edit Category'
-                    : 'Add New Category'}
-                </h3>
-
-                <form onSubmit={handleSave}>
-
-                  <label style={labelStyle}>
-                    Category Name *
-                  </label>
-
-                  <input
-                    style={inputStyle}
-                    value={form.name}
-                    onChange={e =>
-                      setForm({
-                        ...form,
-                        name:e.target.value
-                      })
-                    }
-                    placeholder="e.g. Keychains"
-                    required
-                  />
-
-                  <label style={labelStyle}>
-                    Subtitle
-                  </label>
-
-                  <input
-                    style={inputStyle}
-                    value={form.subtitle}
-                    onChange={e =>
-                      setForm({
-                        ...form,
-                        subtitle:e.target.value
-                      })
-                    }
-                    placeholder="e.g. Custom & personalised"
-                  />
-
-                  <label style={labelStyle}>
-                    Emoji
-                  </label>
-
-                  <input
-                    style={inputStyle}
-                    value={form.emoji}
-                    onChange={e =>
-                      setForm({
-                        ...form,
-                        emoji:e.target.value
-                      })
-                    }
-                    placeholder="e.g. 🔑"
-                  />
-
-                  <button
-                    type="submit"
-                    style={{
-                      ...saveBtnStyle,
-                      opacity:saving ? 0.7 : 1
-                    }}
-                    disabled={saving}
-                  >
-                    {
-                      saving
-                        ? (
-                            editingId
-                              ? 'Updating...'
-                              : 'Saving...'
-                          )
-                        : (
-                            editingId
-                              ? 'Update Category'
-                              : 'Save Category'
-                          )
-                    }
-                  </button>
-
-                </form>
-
-              </div>
-
-            </div>
-          )}
-
         </div>
 
       </div>
