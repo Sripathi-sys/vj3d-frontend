@@ -111,8 +111,12 @@ export function CustomOrder() {
   const [form, setForm] = useState({ name: '', phone: '', idea: '', quantity: '1', budget: '' });
   const [sent, setSent] = useState(false);
 
-  const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
-
+ const handleChange = e => {
+  const { name, value } = e.target;
+  if (name === 'name' && /[^a-zA-Z\s]/.test(value)) return;
+  if (name === 'phone' && /[^0-9+\s]/.test(value)) return;
+  setForm({ ...form, [name]: value });
+};
   const handleSubmit = e => {
     e.preventDefault();
     // ✅ FIX: Send to WhatsApp instead of email

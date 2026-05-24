@@ -5,7 +5,7 @@ import {
   getProducts, getOrders, getCategories,
   createProduct, updateProduct, deleteProduct,
   createCategory, updateCategory, deleteCategory,
-  updateStatus
+  updateStatus, deleteOrder
 } from '../api';
 
 // ─────────────────────────────────────────────
@@ -374,6 +374,9 @@ export function AdminProducts() {
   );
 }
 
+
+
+
 // ─────────────────────────────────────────────
 // Orders
 // ─────────────────────────────────────────────
@@ -391,13 +394,19 @@ export function AdminOrders() {
   const [expandedId, setExpandedId] = useState(null);
 
   const load = () => { getOrders().then(r => setOrders(r.data)).catch(() => {}); };
-  useEffect(() => { load(); }, []);
+
+  const handleDelete = (id) => {
+    if (!window.confirm('Delete this order permanently?')) return;
+    deleteOrder(id).then(() => load()).catch(err => alert(err.response?.data?.message || 'Delete failed'));
+  };
 
   const handleStatus = (id, status) => {
     updateStatus(id, status)
       .then(() => setOrders(prev => prev.map(o => o._id === id ? { ...o, status } : o)))
       .catch(err => alert(err.response?.data?.message || 'Error updating status'));
   };
+
+  useEffect(() => { load(); }, []);
 
   return (
     <div className="admin-layout">
@@ -411,12 +420,12 @@ export function AdminOrders() {
                 <tr>
                   <th>Order ID</th><th>Customer</th><th>Phone</th>
                   <th>Amount</th><th>Status</th><th>Date</th>
-                  <th>Update Status</th><th>Details</th>
+                  <th>Update Status</th><th>Details</th><th>Delete</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.length === 0 && (
-                  <tr><td colSpan={8} style={{ textAlign: 'center', color: '#888', padding: 40 }}>No orders yet</td></tr>
+                  <tr><td colSpan={9} style={{ textAlign: 'center', color: '#888', padding: 40 }}>No orders yet</td></tr>
                 )}
                 {orders.map(o => {
                   const s = statusColors[o.status] || { bg: '#f3f4f6', color: '#374151' };
@@ -450,12 +459,15 @@ export function AdminOrders() {
                             {isExpanded ? '▲ Hide' : '▼ View'}
                           </button>
                         </td>
+                        <td>
+                          <button style={delBtnStyle} onClick={() => handleDelete(o._id)}>🗑️ Delete</button>
+                        </td>
                       </tr>
 
                       {/* Expanded detail row */}
                       {isExpanded && (
                         <tr key={`${o._id}-detail`}>
-                          <td colSpan={8} style={{ background: '#f9fafb', padding: '16px 20px', borderBottom: '2px solid #e5e7eb' }}>
+                          <td colSpan={9} style={{ background: '#f9fafb', padding: '16px 20px', borderBottom: '2px solid #e5e7eb' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
                               <div>
                                 <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 10, color: '#374151' }}>🛍️ Order Items</div>
@@ -500,7 +512,6 @@ export function AdminOrders() {
     </div>
   );
 }
-
 // ─────────────────────────────────────────────
 // Categories
 // ─────────────────────────────────────────────
