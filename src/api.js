@@ -34,6 +34,10 @@ export const updateProduct = (id, data) =>
   API.put(`/products/${id}`, data);
 export const deleteProduct = (id) =>
   API.delete(`/products/${id}`);
+export const uploadImage = (formData) =>
+  API.post('/products/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
 // ================= CATEGORIES =================
 export const getCategories = () =>
   API.get('/categories');

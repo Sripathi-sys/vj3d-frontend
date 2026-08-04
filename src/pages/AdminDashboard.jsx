@@ -477,7 +477,17 @@ export function AdminOrders() {
                                     {item.image && <img src={getImageUrl(item.image, 150)} alt={item.name} style={{ width: 38, height: 38, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }} />}
                                     <div>
                                       <div style={{ fontSize: 13, fontWeight: 600 }}>{item.name}</div>
-                                      <div style={{ fontSize: 12, color: '#6b7280' }}>Qty: {item.quantity} × ₹{item.price}</div>
+                                      <div style={{ fontSize: 12, color: '#6b7280' }}>Qty: {item.quantity || item.qty} × ₹{item.price}</div>
+                                      {item.size && (
+                                        <div style={{ fontSize: 11.5, color: 'var(--accent)', fontWeight: 600, marginTop: 2 }}>
+                                          📐 Size: {item.size}
+                                        </div>
+                                      )}
+                                      {item.photo && (
+                                        <div style={{ fontSize: 11.5, color: '#2563eb', fontWeight: 600, marginTop: 2 }}>
+                                          🖼️ <a href={item.photo} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline', color: 'inherit' }}>View Statue Photo</a>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                 )) : <div style={{ fontSize: 13, color: '#9ca3af' }}>No item details</div>}

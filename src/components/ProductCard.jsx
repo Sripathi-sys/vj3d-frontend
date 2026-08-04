@@ -1,10 +1,12 @@
 // src/components/ProductCard.jsx
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { getImageUrl } from '../utils/imageHelper';
 
 function ProductCard({ product }) {
   const { addToCart } = useCart();
+  const navigate = useNavigate();
   const [added,    setAdded]    = useState(false);
   const [imgError, setImgError] = useState(false);
 
@@ -22,7 +24,8 @@ function ProductCard({ product }) {
 
   const badgeClass = `pbadge${product.badge === 'NEW' ? ' new' : product.badge === 'COMBO' ? ' combo' : ''}`;
 
-  const handleAdd = () => {
+  const handleAdd = (e) => {
+    e.stopPropagation();
     addToCart(product);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
@@ -30,8 +33,12 @@ function ProductCard({ product }) {
 
   const imageUrl = getImageUrl(product.images?.[0]);
 
+  const handleCardClick = () => {
+    navigate(`/products/${product._id}`);
+  };
+
   return (
-    <div className="pcard">
+    <div className="pcard" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
       {badgeLabel && <div className={badgeClass}>{badgeLabel}</div>}
 
       <div className="pimg">
@@ -74,7 +81,7 @@ function ProductCard({ product }) {
           ? <button className={`add-btn${added ? ' added' : ''}`} onClick={handleAdd}>
               {added ? '✓ Added' : 'Add to Cart'}
             </button>
-          : <div className="out-of-stock">Sold Out</div>
+          : <div className="out-of-stock" onClick={e => e.stopPropagation()}>Sold Out</div>
         }
       </div>
     </div>

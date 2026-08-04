@@ -108,6 +108,8 @@ function Checkout() {
                 name:    i.name,
                 price:   i.price,
                 qty:     i.qty,
+                size:    i.customSize || '',
+                photo:   i.customPhoto || '',
               })),
               totalAmount:    grandTotal,
               shippingCharge: shippingCharge,
@@ -283,7 +285,7 @@ function Checkout() {
 
           <div>
             {items.map(item => (
-              <div className="order-item" key={item._id}>
+              <div className="order-item" key={item.cartId}>
                 <div style={{ width: 56, height: 56, background: 'var(--bg2)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0, overflow: 'hidden' }}>
                   {item.images?.[0]
                     ? <img src={getImageUrl(item.images[0], 150)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius)' }} />
@@ -291,6 +293,19 @@ function Checkout() {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 500, fontSize: 13.5, color: 'var(--text)', marginBottom: 3 }}>{item.name}</div>
+                  
+                  {item.customSize && (
+                    <div style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 600, marginBottom: 2 }}>
+                      📐 Size: {item.customSize}
+                    </div>
+                  )}
+
+                  {item.customPhoto && (
+                    <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4 }}>
+                      🖼️ Statue Photo Added
+                    </div>
+                  )}
+
                   <div style={{ fontSize: 13, color: 'var(--text3)' }}>Qty: {item.qty}</div>
                 </div>
                 <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>₹{item.price * item.qty}</div>

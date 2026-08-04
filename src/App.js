@@ -11,6 +11,7 @@ import Toast from './components/Toast';
 
 import Home from './pages/Home';
 import Products from './pages/Products';
+import ProductDetails from './pages/ProductDetails';
 import Categories from './pages/Categories';
 import Checkout from './pages/Checkout';
 
@@ -78,6 +79,16 @@ function App() {
             element={
               <PublicLayout>
                 <Products />
+              </PublicLayout>
+            }
+          />
+
+          {/* PRODUCT DETAILS PAGE */}
+          <Route
+            path="/products/:id"
+            element={
+              <PublicLayout>
+                <ProductDetails />
               </PublicLayout>
             }
           />

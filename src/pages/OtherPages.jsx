@@ -1,6 +1,7 @@
 // src/pages/OtherPages.jsx
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { uploadImage } from '../api';
 
 const WA_NUMBER = '919159432954';
 const WA_BASE   = `https://wa.me/${WA_NUMBER}`;
@@ -110,6 +111,9 @@ export function Contact() {
 export function CustomOrder() {
   const [form, setForm] = useState({ name: '', phone: '', idea: '', quantity: '1', budget: '' });
   const [sent, setSent] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
  const handleChange = e => {
   const { name, value } = e.target;
@@ -117,6 +121,27 @@ export function CustomOrder() {
   if (name === 'phone' && /[^0-9+\s]/.test(value)) return;
   setForm({ ...form, [name]: value });
 };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadError('');
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const res = await uploadImage(formData);
+      setPhotoUrl(res.data.url);
+    } catch (err) {
+      console.error(err);
+      setUploadError(err.response?.data?.message || 'Failed to upload photo. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = e => {
     e.preventDefault();
     // ✅ FIX: Send to WhatsApp instead of email
@@ -127,7 +152,8 @@ Name: ${form.name}
 Phone: ${form.phone}
 Idea: ${form.idea}
 Quantity: ${form.quantity}
-Budget: ${form.budget || 'Not specified'}`
+Budget: ${form.budget || 'Not specified'}
+Beloved One's Photo: ${photoUrl || 'Not uploaded'}`
     );
     window.open(`${WA_BASE}?text=${message}`, '_blank');
     setSent(true);
@@ -171,7 +197,7 @@ Budget: ${form.budget || 'Not specified'}`
             required
           />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
           <div className="form-group">
             <label>Quantity</label>
             <input name="quantity" value={form.quantity} onChange={handleChange} placeholder="1" type="number" min="1" />
@@ -180,6 +206,42 @@ Budget: ${form.budget || 'Not specified'}`
             <label>Budget (optional)</label>
             <input name="budget" value={form.budget} onChange={handleChange} placeholder="₹500" />
           </div>
+        </div>
+
+        {/* beloved ones statue photo upload */}
+        <div className="form-group" style={{ background: 'var(--bg2)', padding: '16px 20px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', marginBottom: 20 }}>
+          <label style={{ fontWeight: 600, display: 'block', marginBottom: 6 }}>
+            🖼️ Upload HD Photo of your Beloved Ones (Optional)
+          </label>
+          <div style={{ fontSize: 12.5, color: 'var(--text3)', marginBottom: 12 }}>
+            If you need a 3D statue of your passed father, mother, or beloved one, upload their HD photo.
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              📁 Select HD Photo / Document
+              <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} />
+            </label>
+
+            {uploading && (
+              <span style={{ fontSize: 13, color: 'var(--text3)' }}>Uploading photo...</span>
+            )}
+
+            {photoUrl && (
+              <span style={{ fontSize: 13, color: '#15803d', fontWeight: 600 }}>✓ Uploaded successfully!</span>
+            )}
+          </div>
+
+          {uploadError && (
+            <div style={{ color: 'var(--red)', fontSize: 12.5, marginTop: 8 }}>⚠️ {uploadError}</div>
+          )}
+
+          {photoUrl && (
+            <div style={{ marginTop: 12, position: 'relative', display: 'inline-block' }}>
+              <img src={photoUrl} alt="Preview" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }} />
+              <button type="button" onClick={() => setPhotoUrl('')} style={{ position: 'absolute', top: -6, right: -6, background: 'var(--red)', color: 'white', border: 'none', borderRadius: '50%', width: 18, height: 18, fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            </div>
+          )}
         </div>
 
         {/* ✅ FIX: WhatsApp send button */}

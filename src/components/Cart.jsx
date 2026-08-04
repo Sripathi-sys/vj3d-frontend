@@ -35,7 +35,7 @@ function Cart() {
             </div>
           ) : (
             items.map(item => (
-              <div className="cart-item" key={item._id}>
+              <div className="cart-item" key={item.cartId}>
                 <div className="ci-img">
                   {item.images?.[0]
                     ? <img src={getImageUrl(item.images[0], 150)} alt={item.name} />
@@ -44,12 +44,25 @@ function Cart() {
                 </div>
                 <div className="ci-info">
                   <div className="ci-name">{item.name}</div>
-                  <div className="ci-price">₹{item.price}</div>
-                  <div className="ci-controls">
-                    <button className="qty-btn" onClick={() => updateQty(item._id, item.qty - 1)}>−</button>
+                  
+                  {item.customSize && (
+                    <div style={{ fontSize: 11.5, color: 'var(--accent)', fontWeight: 600, marginTop: 2 }}>
+                      📐 Size: {item.customSize}
+                    </div>
+                  )}
+
+                  {item.customPhoto && (
+                    <div style={{ fontSize: 11.5, color: 'var(--text3)', marginTop: 2 }}>
+                      🖼️ <a href={item.customPhoto} target="_blank" rel="noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>View Statue Photo</a>
+                    </div>
+                  )}
+
+                  <div className="ci-price" style={{ marginTop: 4 }}>₹{item.price}</div>
+                  <div className="ci-controls" style={{ marginTop: 6 }}>
+                    <button className="qty-btn" onClick={() => updateQty(item.cartId, item.qty - 1)}>−</button>
                     <span className="ci-qty">{item.qty}</span>
-                    <button className="qty-btn" onClick={() => updateQty(item._id, item.qty + 1)}>+</button>
-                    <span className="ci-remove" onClick={() => removeFromCart(item._id)}>Remove</span>
+                    <button className="qty-btn" onClick={() => updateQty(item.cartId, item.qty + 1)}>+</button>
+                    <span className="ci-remove" onClick={() => removeFromCart(item.cartId)}>Remove</span>
                   </div>
                 </div>
               </div>

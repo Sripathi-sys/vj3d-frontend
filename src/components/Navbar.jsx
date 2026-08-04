@@ -35,7 +35,7 @@ function Navbar() {
 
           <ul className="nav-links">
             <li><Link to="/">Home</Link></li>
-            <li><Link to="/products">Shop</Link></li>
+            <li><Link to="/products">Products</Link></li>
             <li><Link to="/categories">Categories</Link></li>
             <li><Link to="/services">Services</Link></li>
             <li><Link to="/custom-order">Custom Order</Link></li>
@@ -83,7 +83,7 @@ function Navbar() {
       {/* MOBILE MENU */}
       <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
         <Link to="/"             onClick={() => setMenuOpen(false)}>Home</Link>
-        <Link to="/products"     onClick={() => setMenuOpen(false)}>Shop</Link>
+        <Link to="/products"     onClick={() => setMenuOpen(false)}>Products</Link>
         <Link to="/categories"   onClick={() => setMenuOpen(false)}>Categories</Link>
         <Link to="/services"     onClick={() => setMenuOpen(false)}>Services</Link>
         <Link to="/custom-order" onClick={() => setMenuOpen(false)}>Custom Order</Link>

@@ -14,26 +14,28 @@ export function CartProvider({ children }) {
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
   }, []);
 
-  const addToCart = useCallback((product) => {
+  const addToCart = useCallback((product, customizations = {}) => {
+    const { customSize = '', customPhoto = '', customPhotoName = '' } = customizations;
+    const cartId = `${product._id}-${customSize}-${customPhoto}`;
     setItems(prev => {
-      const exists = prev.find(i => i._id === product._id);
+      const exists = prev.find(i => i.cartId === cartId);
       return exists
-        ? prev.map(i => i._id === product._id ? { ...i, qty: i.qty + 1 } : i)
-        : [...prev, { ...product, qty: 1 }];
+        ? prev.map(i => i.cartId === cartId ? { ...i, qty: i.qty + 1 } : i)
+        : [...prev, { ...product, qty: 1, cartId, customSize, customPhoto, customPhotoName }];
     });
     showToast(`${product.name} added to cart!`, 'success');
   }, [showToast]);
 
-  const updateQty = useCallback((id, qty) => {
+  const updateQty = useCallback((cartId, qty) => {
     if (qty < 1) {
-      setItems(prev => prev.filter(i => i._id !== id));
+      setItems(prev => prev.filter(i => i.cartId !== cartId));
     } else {
-      setItems(prev => prev.map(i => i._id === id ? { ...i, qty } : i));
+      setItems(prev => prev.map(i => i.cartId === cartId ? { ...i, qty } : i));
     }
   }, []);
 
-  const removeFromCart = useCallback((id) => {
-    setItems(prev => prev.filter(i => i._id !== id));
+  const removeFromCart = useCallback((cartId) => {
+    setItems(prev => prev.filter(i => i.cartId !== cartId));
   }, []);
 
   const clearCart = useCallback(() => setItems([]), []);
