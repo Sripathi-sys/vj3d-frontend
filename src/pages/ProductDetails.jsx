@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getProduct } from '../api';
 import { useCart } from '../context/CartContext';
-
-const BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
+import { getImageUrl } from '../utils/imageHelper';
 
 function ProductDetails() {
   const { id } = useParams();
@@ -35,7 +34,7 @@ function ProductDetails() {
         <div style={{ flex: 1 }}>
           {product.images?.[0] ? (
             <img
-              src={`${BASE}${product.images[0]}`}
+              src={getImageUrl(product.images[0], 800)}
               alt={product.name}
               style={{ width: '100%', borderRadius: 10 }}
             />

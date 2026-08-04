@@ -7,6 +7,7 @@ import {
   createCategory, updateCategory, deleteCategory,
   updateStatus, deleteOrder
 } from '../api';
+import { getImageUrl } from '../utils/imageHelper';
 
 // ─────────────────────────────────────────────
 // Sidebar
@@ -235,7 +236,7 @@ export function AdminProducts() {
                     <td>
                       <div style={{ width: 52, height: 52, background: '#f3f4f6', borderRadius: 4, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
                         {p.images?.[0]
-                          ? <img src={p.images[0]} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ? <img src={getImageUrl(p.images[0], 150)} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           : (p.emoji || '📦')
                         }
                       </div>
@@ -473,7 +474,7 @@ export function AdminOrders() {
                                 <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 10, color: '#374151' }}>🛍️ Order Items</div>
                                 {o.items?.length > 0 ? o.items.map((item, i) => (
                                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                                    {item.image && <img src={item.image} alt={item.name} style={{ width: 38, height: 38, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }} />}
+                                    {item.image && <img src={getImageUrl(item.image, 150)} alt={item.name} style={{ width: 38, height: 38, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }} />}
                                     <div>
                                       <div style={{ fontSize: 13, fontWeight: 600 }}>{item.name}</div>
                                       <div style={{ fontSize: 12, color: '#6b7280' }}>Qty: {item.quantity} × ₹{item.price}</div>

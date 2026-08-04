@@ -1,6 +1,7 @@
 // src/components/Cart.jsx
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { getImageUrl } from '../utils/imageHelper';
 
 function Cart() {
   const { items, cartOpen, setCartOpen, updateQty, removeFromCart, totalPrice } = useCart();
@@ -36,9 +37,8 @@ function Cart() {
             items.map(item => (
               <div className="cart-item" key={item._id}>
                 <div className="ci-img">
-                  {/* ✅ FIX: Use Cloudinary URL directly — no BASE prefix needed */}
                   {item.images?.[0]
-                    ? <img src={item.images[0]} alt={item.name} />
+                    ? <img src={getImageUrl(item.images[0], 150)} alt={item.name} />
                     : item.emoji || '🖨️'
                   }
                 </div>

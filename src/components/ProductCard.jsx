@@ -1,15 +1,7 @@
 // src/components/ProductCard.jsx
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
-
-const BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
-
-// Handle both Cloudinary full URLs and old local /uploads/ paths
-function getImageUrl(img) {
-  if (!img) return null;
-  if (img.startsWith('http://') || img.startsWith('https://')) return img; // Cloudinary URL
-  return `${BASE}${img}`; // old local path
-}
+import { getImageUrl } from '../utils/imageHelper';
 
 function ProductCard({ product }) {
   const { addToCart } = useCart();

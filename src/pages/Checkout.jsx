@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { createRazorpayOrder, verifyPayment } from '../api';
+import { getImageUrl } from '../utils/imageHelper';
 
 // ── Shipping charges by state ──
 const SHIPPING_RATES = {
@@ -285,7 +286,7 @@ function Checkout() {
               <div className="order-item" key={item._id}>
                 <div style={{ width: 56, height: 56, background: 'var(--bg2)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0, overflow: 'hidden' }}>
                   {item.images?.[0]
-                    ? <img src={item.images[0]} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius)' }} />
+                    ? <img src={getImageUrl(item.images[0], 150)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius)' }} />
                     : item.emoji || '📦'}
                 </div>
                 <div style={{ flex: 1 }}>

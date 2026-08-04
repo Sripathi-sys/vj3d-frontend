@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { getProducts, getCategories } from '../api';
+import { getImageUrl } from '../utils/imageHelper';
 
 const SkeletonGrid = () => (
   <div className="loading-grid">
@@ -101,7 +102,7 @@ function CategoryCard({ cat, products }) {
                   >
                     <div style={{ aspectRatio:'1/1', background:'var(--bg2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, overflow:'hidden' }}>
                       {p.images?.[0]
-                        ? <img src={p.images[0]} alt={p.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                        ? <img src={getImageUrl(p.images[0], 300)} alt={p.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                         : p.emoji || '📦'
                       }
                     </div>
