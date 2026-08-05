@@ -5,7 +5,7 @@ import {
   getProducts, getOrders, getCategories,
   createProduct, updateProduct, deleteProduct,
   createCategory, updateCategory, deleteCategory,
-  updateStatus, deleteOrder
+  updateStatus, deleteOrder, uploadImage
 } from '../api';
 import { getImageUrl } from '../utils/imageHelper';
 
@@ -121,7 +121,26 @@ export function AdminProducts() {
   const [newSizeName,  setNewSizeName]  = useState('');
   const [newSizePrice, setNewSizePrice] = useState('');
   const [newColorName, setNewColorName] = useState('');
+  const [newColorImagePreview, setNewColorImagePreview] = useState('');
+  const [colorUploading, setColorUploading] = useState(false);
+  const colorImageInputRef = useRef();
   const fileInputRef = useRef();
+
+  const handleColorImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setColorUploading(true);
+    try {
+      const data = new FormData();
+      data.append('image', file);
+      const res = await uploadImage(data);
+      setNewColorImagePreview(res.data.url);
+    } catch (err) {
+      alert('Failed to upload color image');
+    } finally {
+      setColorUploading(false);
+    }
+  };
 
   const load = () => {
     getProducts({}).then(r => setProducts(r.data)).catch(() => {});
@@ -170,6 +189,8 @@ export function AdminProducts() {
     setNewSizeName('');
     setNewSizePrice('');
     setNewColorName('');
+    setNewColorImagePreview('');
+    setColorUploading(false);
     setShowModal(true);
   };
 
@@ -182,6 +203,8 @@ export function AdminProducts() {
     setNewSizeName('');
     setNewSizePrice('');
     setNewColorName('');
+    setNewColorImagePreview('');
+    setColorUploading(false);
   };
 
   const handleSave = async (e) => {
@@ -421,7 +444,7 @@ export function AdminProducts() {
                   {/* Colors Customization */}
                   <div style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: 12, marginBottom: 14, background: '#f9fafb' }}>
                     <label style={{ ...labelStyle, marginBottom: 8 }}>🎨 Colors (Optional)</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: 8, marginBottom: 8 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 8 }}>
                       <input
                         type="text"
                         placeholder="Color name (e.g. Nilgiri Blue)"
@@ -429,6 +452,43 @@ export function AdminProducts() {
                         onChange={e => setNewColorName(e.target.value)}
                         style={{ ...inputStyle, margin: 0 }}
                       />
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          ref={colorImageInputRef}
+                          onChange={handleColorImageChange}
+                          style={{ display: 'none' }}
+                        />
+                        {newColorImagePreview ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <img
+                              src={newColorImagePreview}
+                              alt="Color preview"
+                              style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 4, border: '1px solid #d1d5db' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setNewColorImagePreview('')}
+                              style={{ background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}
+                            >
+                              ✕ Remove Photo
+                            </button>
+                          </div>
+                        ) : colorUploading ? (
+                          <span style={{ fontSize: 12.5, color: '#666' }}>⏳ Uploading color photo...</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => colorImageInputRef.current.click()}
+                            style={{ background: '#fff', border: '1px solid #d1d5db', borderRadius: 4, padding: '6px 12px', fontSize: 12.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}
+                          >
+                            📸 Upload Color Photo
+                          </button>
+                        )}
+                      </div>
+
                       <button
                         type="button"
                         onClick={() => {
@@ -436,28 +496,37 @@ export function AdminProducts() {
                           if (!name) return;
                           setForm(prev => ({
                             ...prev,
-                            colors: [...(prev.colors || []), name]
+                            colors: [...(prev.colors || []), { name, image: newColorImagePreview }]
                           }));
                           setNewColorName('');
+                          setNewColorImagePreview('');
                         }}
-                        style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}
+                        style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: 4, padding: '8px', cursor: 'pointer', fontWeight: 600, fontSize: 13, display: 'block', width: '100%' }}
                       >
-                        Add
+                        + Add Color
                       </button>
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {(form.colors || []).map((col, idx) => (
-                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: '1px solid #e5e7eb', padding: '4px 10px', borderRadius: 16, fontSize: 12.5 }}>
-                          <span>{col}</span>
-                          <button
-                            type="button"
-                            onClick={() => setForm(prev => ({ ...prev, colors: prev.colors.filter((_, i) => i !== idx) }))}
-                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+                      {(form.colors || []).map((col, idx) => {
+                        const name = col && typeof col === 'object' ? col.name : col;
+                        const img = col && typeof col === 'object' ? col.image : '';
+                        return (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: '1px solid #e5e7eb', padding: '4px 10px', borderRadius: 6, fontSize: 12.5 }}>
+                            {img && (
+                              <img src={getImageUrl(img, 100)} alt={name} style={{ width: 22, height: 22, objectFit: 'cover', borderRadius: 3 }} />
+                            )}
+                            <span>{name}</span>
+                            <button
+                              type="button"
+                              onClick={() => setForm(prev => ({ ...prev, colors: prev.colors.filter((_, i) => i !== idx) }))}
+                              style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 

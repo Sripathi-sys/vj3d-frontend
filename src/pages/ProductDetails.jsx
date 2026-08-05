@@ -44,7 +44,8 @@ function ProductDetails() {
         setSize('');
       }
       if (product.colors && product.colors.length > 0) {
-        setSelectedColor(product.colors[0]);
+        const firstColor = product.colors[0];
+        setSelectedColor(firstColor && typeof firstColor === 'object' ? firstColor.name : firstColor);
       } else {
         setSelectedColor('');
       }
@@ -81,6 +82,13 @@ function ProductDetails() {
     : product.originalPrice;
   const savings = originalFinalPrice ? originalFinalPrice - finalPrice : null;
   const discount = savings && originalFinalPrice ? Math.round((savings / originalFinalPrice) * 100) : null;
+
+  // Calculate image to display (selected color image or base product image)
+  const selectedColorObj = product.colors?.find(c => {
+    const name = c && typeof c === 'object' ? c.name : c;
+    return name === selectedColor;
+  });
+  const displayImage = selectedColorObj && selectedColorObj.image ? selectedColorObj.image : (product.images?.[0] || '');
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
@@ -142,7 +150,7 @@ function ProductDetails() {
         
         {/* LEFT COLUMN: IMAGE */}
         <div style={{ flex: '1 1 450px' }}>
-          {product.images?.[0] ? (
+          {displayImage ? (
             <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', background: 'var(--bg2)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
               {product.badge && (
                 <span style={{ position: 'absolute', top: 16, left: 16, background: 'var(--red)', color: 'white', padding: '4px 12px', borderRadius: 4, fontSize: 12, fontWeight: 700, zIndex: 10 }}>
@@ -150,7 +158,7 @@ function ProductDetails() {
                 </span>
               )}
               <img
-                src={getImageUrl(product.images[0], 800)}
+                src={getImageUrl(displayImage, 800)}
                 alt={product.name}
                 style={{ width: '100%', height: 'auto', display: 'block', transition: 'transform 0.3s ease' }}
                 onMouseEnter={e => e.target.style.transform = 'scale(1.02)'}
@@ -249,25 +257,35 @@ function ProductDetails() {
                 🎨 Colour: <span style={{ fontWeight: 700 }}>{selectedColor}</span>
               </label>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                {product.colors.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => setSelectedColor(c)}
-                    style={{
-                      padding: '8px 14px',
-                      fontSize: 13,
-                      fontWeight: 500,
-                      borderRadius: 'var(--radius)',
-                      border: selectedColor === c ? '2px solid var(--accent)' : '1px solid var(--border)',
-                      background: selectedColor === c ? 'var(--bg2)' : 'var(--bg)',
-                      color: selectedColor === c ? 'var(--accent)' : 'var(--text2)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {c}
-                  </button>
-                ))}
+                {product.colors.map((c) => {
+                  const name = c && typeof c === 'object' ? c.name : c;
+                  const img = c && typeof c === 'object' ? c.image : '';
+                  return (
+                    <button
+                      key={name}
+                      onClick={() => setSelectedColor(name)}
+                      style={{
+                        padding: '6px 12px',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        borderRadius: 'var(--radius)',
+                        border: selectedColor === name ? '2px solid var(--accent)' : '1px solid var(--border)',
+                        background: selectedColor === name ? 'var(--bg2)' : 'var(--bg)',
+                        color: selectedColor === name ? 'var(--accent)' : 'var(--text2)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8
+                      }}
+                    >
+                      {img && (
+                        <img src={getImageUrl(img, 100)} alt={name} style={{ width: 22, height: 22, objectFit: 'cover', borderRadius: 4 }} />
+                      )}
+                      {name}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
