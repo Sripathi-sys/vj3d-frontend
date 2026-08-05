@@ -66,6 +66,19 @@ function Footer() {
         <div className="footer-bottom">
           <p>© {year} <span>VJ 3D Works</span> by J. Vijay. All rights reserved.</p>
           <p>Made with ❤️ in Tamil Nadu, India</p>
+          <p style={{ marginTop: 10, fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>
+            Designed and maintained by <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>ELFGENCY GROWTH LAB Pvt Ltd</span>
+          </p>
+          <p style={{ marginTop: 4, fontSize: 13 }}>
+            <a 
+              href="https://wa.me/919042757617?text=Hi%20%2C%20I%20am%20came%20from%20Vj3dworks.com" 
+              target="_blank" 
+              rel="noreferrer" 
+              style={{ color: '#22c55e', fontWeight: 600, textDecoration: 'underline' }}
+            >
+              WhatsApp: 9042757617
+            </a>
+          </p>
         </div>
       </div>
     </footer>

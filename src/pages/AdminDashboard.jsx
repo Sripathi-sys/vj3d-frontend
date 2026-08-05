@@ -583,6 +583,46 @@ export function AdminOrders() {
 
   const load = () => { getOrders().then(r => setOrders(r.data)).catch(() => {}); };
 
+  const downloadExcel = () => {
+    // CSV headers
+    const headers = ['Order ID', 'Customer Name', 'Phone', 'Email', 'Address', 'City', 'Pincode', 'Amount (INR)', 'Status', 'Payment Method', 'Payment Status', 'Date', 'Items'];
+    
+    // CSV rows
+    const rows = orders.map(o => {
+      const itemsList = o.items?.map(i => `${i.name} (Qty: ${i.qty || i.quantity}, Size: ${i.size || 'N/A'}, Color: ${i.color || 'N/A'})`).join('; ') || '';
+      return [
+        o._id,
+        o.customerName,
+        o.customerPhone,
+        o.customerEmail || '',
+        o.address ? o.address.replace(/"/g, '""').replace(/\n/g, ' ') : '',
+        o.city,
+        o.pincode,
+        o.totalAmount,
+        o.status,
+        o.paymentMethod || 'COD',
+        o.paymentStatus || 'Pending',
+        new Date(o.createdAt).toLocaleDateString('en-IN'),
+        itemsList.replace(/"/g, '""')
+      ];
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(e => e.map(val => `"${val}"`).join(','))
+    ].join('\n');
+
+    // Create a blob and trigger download
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `orders_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleDelete = (id) => {
     if (!window.confirm('Delete this order permanently?')) return;
     deleteOrder(id).then(() => load()).catch(err => alert(err.response?.data?.message || 'Delete failed'));
@@ -602,6 +642,27 @@ export function AdminOrders() {
       <div className="admin-main">
         <div className="admin-topbar"><h2>Manage Orders</h2></div>
         <div className="admin-content">
+
+          <button 
+            onClick={downloadExcel} 
+            style={{ 
+              background: '#10b981', 
+              color: '#fff', 
+              border: 'none', 
+              padding: '10px 22px', 
+              fontSize: 13.5, 
+              fontWeight: 600, 
+              borderRadius: 4, 
+              cursor: 'pointer', 
+              marginBottom: 20, 
+              letterSpacing: '0.04em', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: 8 
+            }}
+          >
+            📊 Download Excel
+          </button>
           <div style={{ overflowX: 'auto' }}>
             <table className="admin-table">
               <thead>
