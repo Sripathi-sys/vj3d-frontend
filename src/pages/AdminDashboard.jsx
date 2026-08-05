@@ -105,7 +105,8 @@ export function Dashboard() {
 const EMPTY_PRODUCT = {
   name: '', description: '', price: '', originalPrice: '',
   emoji: '', badge: '', category: '',
-  inStock: true, featured: false, isNewArrival: false, isCombo: false
+  inStock: true, featured: false, isNewArrival: false, isCombo: false,
+  sizes: [], colors: []
 };
 
 export function AdminProducts() {
@@ -117,6 +118,9 @@ export function AdminProducts() {
   const [imageFile,    setImageFile]    = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [form,         setForm]         = useState(EMPTY_PRODUCT);
+  const [newSizeName,  setNewSizeName]  = useState('');
+  const [newSizePrice, setNewSizePrice] = useState('');
+  const [newColorName, setNewColorName] = useState('');
   const fileInputRef = useRef();
 
   const load = () => {
@@ -158,9 +162,14 @@ export function AdminProducts() {
       featured:      p.featured      ?? false,
       isNewArrival:  p.isNewArrival  ?? false,
       isCombo:       p.isCombo       ?? false,
+      sizes:         p.sizes         || [],
+      colors:        p.colors        || [],
     });
     setImageFile(null);
     setImagePreview(p.images?.[0] || '');  // Cloudinary URL — already full https://
+    setNewSizeName('');
+    setNewSizePrice('');
+    setNewColorName('');
     setShowModal(true);
   };
 
@@ -170,6 +179,9 @@ export function AdminProducts() {
     setForm(EMPTY_PRODUCT);
     setImageFile(null);
     setImagePreview('');
+    setNewSizeName('');
+    setNewSizePrice('');
+    setNewColorName('');
   };
 
   const handleSave = async (e) => {
@@ -187,6 +199,8 @@ export function AdminProducts() {
       data.append('featured',      form.featured);
       data.append('isNewArrival',  form.isNewArrival);
       data.append('isCombo',       form.isCombo);
+      data.append('sizes',         JSON.stringify(form.sizes || []));
+      data.append('colors',        JSON.stringify(form.colors || []));
       if (form.category) data.append('category', form.category);
       if (imageFile)     data.append('images',   imageFile);
 
@@ -352,6 +366,101 @@ export function AdminProducts() {
                     </div>
                   </div>
 
+                  {/* Sizes Customization */}
+                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: 12, marginBottom: 14, background: '#f9fafb' }}>
+                    <label style={{ ...labelStyle, marginBottom: 8 }}>📐 Sizes (Optional)</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr', gap: 8, marginBottom: 8 }}>
+                      <input
+                        type="text"
+                        placeholder="Size name (e.g. 4 inch)"
+                        value={newSizeName}
+                        onChange={e => setNewSizeName(e.target.value)}
+                        style={{ ...inputStyle, margin: 0 }}
+                      />
+                      <input
+                        type="number"
+                        placeholder="Price (₹)"
+                        value={newSizePrice}
+                        onChange={e => setNewSizePrice(e.target.value)}
+                        style={{ ...inputStyle, margin: 0 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const name = newSizeName.trim();
+                          const pr = parseFloat(newSizePrice);
+                          if (!name || isNaN(pr)) return;
+                          setForm(prev => ({
+                            ...prev,
+                            sizes: [...(prev.sizes || []), { size: name, price: pr }]
+                          }));
+                          setNewSizeName('');
+                          setNewSizePrice('');
+                        }}
+                        style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {(form.sizes || []).map((sz, idx) => (
+                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #e5e7eb', padding: '6px 10px', borderRadius: 4, fontSize: 13 }}>
+                          <span><strong>{sz.size}</strong> — ₹{sz.price}</span>
+                          <button
+                            type="button"
+                            onClick={() => setForm(prev => ({ ...prev, sizes: prev.sizes.filter((_, i) => i !== idx) }))}
+                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Colors Customization */}
+                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: 12, marginBottom: 14, background: '#f9fafb' }}>
+                    <label style={{ ...labelStyle, marginBottom: 8 }}>🎨 Colors (Optional)</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: 8, marginBottom: 8 }}>
+                      <input
+                        type="text"
+                        placeholder="Color name (e.g. Nilgiri Blue)"
+                        value={newColorName}
+                        onChange={e => setNewColorName(e.target.value)}
+                        style={{ ...inputStyle, margin: 0 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const name = newColorName.trim();
+                          if (!name) return;
+                          setForm(prev => ({
+                            ...prev,
+                            colors: [...(prev.colors || []), name]
+                          }));
+                          setNewColorName('');
+                        }}
+                        style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {(form.colors || []).map((col, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: '1px solid #e5e7eb', padding: '4px 10px', borderRadius: 16, fontSize: 12.5 }}>
+                          <span>{col}</span>
+                          <button
+                            type="button"
+                            onClick={() => setForm(prev => ({ ...prev, colors: prev.colors.filter((_, i) => i !== idx) }))}
+                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
                     {[['inStock', '✓ In Stock'], ['featured', '⭐ Featured'], ['isNewArrival', '🆕 New Arrival'], ['isCombo', '🎁 Combo']].map(([k, l]) => (
                       <label key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, cursor: 'pointer', fontWeight: 500, padding: '6px 0' }}>
@@ -481,6 +590,11 @@ export function AdminOrders() {
                                       {item.size && (
                                         <div style={{ fontSize: 11.5, color: 'var(--accent)', fontWeight: 600, marginTop: 2 }}>
                                           📐 Size: {item.size}
+                                        </div>
+                                      )}
+                                      {item.color && (
+                                        <div style={{ fontSize: 11.5, color: '#16a34a', fontWeight: 600, marginTop: 2 }}>
+                                          🎨 Color: {item.color}
                                         </div>
                                       )}
                                       {item.photo && (

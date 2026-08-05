@@ -12,7 +12,8 @@ function ProductDetails() {
   const [loading, setLoading] = useState(true);
   
   // Customization States
-  const [size, setSize] = useState('4"');
+  const [size, setSize] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
   const [customSizeText, setCustomSizeText] = useState('');
   const [isCustomStatue, setIsCustomStatue] = useState(false);
   const [photoUrl, setPhotoUrl] = useState('');
@@ -35,6 +36,21 @@ function ProductDetails() {
     load();
   }, [id]);
 
+  useEffect(() => {
+    if (product) {
+      if (product.sizes && product.sizes.length > 0) {
+        setSize(product.sizes[0].size);
+      } else {
+        setSize('');
+      }
+      if (product.colors && product.colors.length > 0) {
+        setSelectedColor(product.colors[0]);
+      } else {
+        setSelectedColor('');
+      }
+    }
+  }, [product]);
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -53,27 +69,16 @@ function ProductDetails() {
     );
   }
 
-  const sizes = [
-    { label: '4" (Base)', value: '4"' },
-    { label: '6" (+₹150)', value: '6"' },
-    { label: '8" (+₹350)', value: '8"' },
-    { label: '10" (+₹600)', value: '10"' },
-    { label: '12" (+₹900)', value: '12"' },
-    { label: 'Custom size', value: 'Custom' },
-  ];
-
-  const getModifier = (sz) => {
-    switch (sz) {
-      case '6"': return 150;
-      case '8"': return 350;
-      case '10"': return 600;
-      case '12"': return 900;
-      default: return 0;
-    }
-  };
-
-  const finalPrice = product.price + getModifier(size);
-  const originalFinalPrice = product.originalPrice ? product.originalPrice + getModifier(size) : null;
+  // Dynamic Sizes from product configuration
+  const productSizes = product.sizes || [];
+  
+  // Calculate final prices based on selected size price or base price
+  const selectedSizeObj = productSizes.find(s => s.size === size);
+  
+  const finalPrice = selectedSizeObj ? selectedSizeObj.price : product.price;
+  const originalFinalPrice = product.originalPrice && selectedSizeObj
+    ? product.originalPrice + (selectedSizeObj.price - product.price)
+    : product.originalPrice;
   const savings = originalFinalPrice ? originalFinalPrice - finalPrice : null;
   const discount = savings && originalFinalPrice ? Math.round((savings / originalFinalPrice) * 100) : null;
 
@@ -113,6 +118,7 @@ function ProductDetails() {
 
     const customizations = {
       customSize: customSizeVal,
+      customColor: selectedColor || '',
       customPhoto: isCustomStatue ? photoUrl : '',
       customPhotoName: isCustomStatue ? 'Statue Photo' : '',
     };
@@ -189,50 +195,82 @@ function ProductDetails() {
           )}
 
           {/* SIZING CUSTOMIZATION */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <label style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>
-              📐 Statue Size (Height in Inches):
-            </label>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              {sizes.map((s) => (
-                <button
-                  key={s.value}
-                  onClick={() => setSize(s.value)}
+          {productSizes.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <label style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>
+                📐 Statue Size (Height in Inches):
+              </label>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {productSizes.map((s) => (
+                  <button
+                    key={s.size}
+                    onClick={() => setSize(s.size)}
+                    style={{
+                      padding: '8px 14px',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      borderRadius: 'var(--radius)',
+                      border: size === s.size ? '2px solid var(--accent)' : '1px solid var(--border)',
+                      background: size === s.size ? 'var(--bg2)' : 'var(--bg)',
+                      color: size === s.size ? 'var(--accent)' : 'var(--text2)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {s.size}
+                  </button>
+                ))}
+              </div>
+              {size === 'Custom' && (
+                <input
+                  type="text"
+                  placeholder="E.g., 14 inches (We will confirm final quote on WhatsApp)"
+                  value={customSizeText}
+                  onChange={e => setCustomSizeText(e.target.value)}
                   style={{
-                    padding: '8px 14px',
-                    fontSize: 13,
-                    fontWeight: 500,
+                    padding: '10px 14px',
                     borderRadius: 'var(--radius)',
-                    border: size === s.value ? '2px solid var(--accent)' : '1px solid var(--border)',
-                    background: size === s.value ? 'var(--bg2)' : 'var(--bg)',
-                    color: size === s.value ? 'var(--accent)' : 'var(--text2)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
+                    border: '1px solid var(--border)',
+                    fontSize: 13.5,
+                    outline: 'none',
+                    marginTop: 4,
+                    width: '100%',
+                    boxSizing: 'border-box'
                   }}
-                >
-                  {s.label}
-                </button>
-              ))}
+                />
+              )}
             </div>
-            {size === 'Custom' && (
-              <input
-                type="text"
-                placeholder="E.g., 14 inches (We will confirm final quote on WhatsApp)"
-                value={customSizeText}
-                onChange={e => setCustomSizeText(e.target.value)}
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius)',
-                  border: '1px solid var(--border)',
-                  fontSize: 13.5,
-                  outline: 'none',
-                  marginTop: 4,
-                  width: '100%',
-                  boxSizing: 'border-box'
-                }}
-              />
-            )}
-          </div>
+          )}
+
+          {/* COLOR CUSTOMIZATION */}
+          {product.colors && product.colors.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <label style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>
+                🎨 Colour: <span style={{ fontWeight: 700 }}>{selectedColor}</span>
+              </label>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {product.colors.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setSelectedColor(c)}
+                    style={{
+                      padding: '8px 14px',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      borderRadius: 'var(--radius)',
+                      border: selectedColor === c ? '2px solid var(--accent)' : '1px solid var(--border)',
+                      background: selectedColor === c ? 'var(--bg2)' : 'var(--bg)',
+                      color: selectedColor === c ? 'var(--accent)' : 'var(--text2)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* BELOVED ONES CUSTOM PHOTO UPLOAD */}
           <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 18, marginTop: 8 }}>

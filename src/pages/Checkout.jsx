@@ -109,6 +109,7 @@ function Checkout() {
                 price:   i.price,
                 qty:     i.qty,
                 size:    i.customSize || '',
+                color:   i.customColor || '',
                 photo:   i.customPhoto || '',
               })),
               totalAmount:    grandTotal,
@@ -297,6 +298,12 @@ function Checkout() {
                   {item.customSize && (
                     <div style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 600, marginBottom: 2 }}>
                       📐 Size: {item.customSize}
+                    </div>
+                  )}
+
+                  {item.customColor && (
+                    <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, marginBottom: 2 }}>
+                      🎨 Color: {item.customColor}
                     </div>
                   )}
 

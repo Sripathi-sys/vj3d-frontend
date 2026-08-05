@@ -51,6 +51,12 @@ function Cart() {
                     </div>
                   )}
 
+                  {item.customColor && (
+                    <div style={{ fontSize: 11.5, color: '#16a34a', fontWeight: 600, marginTop: 2 }}>
+                      🎨 Color: {item.customColor}
+                    </div>
+                  )}
+
                   {item.customPhoto && (
                     <div style={{ fontSize: 11.5, color: 'var(--text3)', marginTop: 2 }}>
                       🖼️ <a href={item.customPhoto} target="_blank" rel="noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>View Statue Photo</a>

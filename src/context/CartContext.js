@@ -15,13 +15,13 @@ export function CartProvider({ children }) {
   }, []);
 
   const addToCart = useCallback((product, customizations = {}) => {
-    const { customSize = '', customPhoto = '', customPhotoName = '' } = customizations;
-    const cartId = `${product._id}-${customSize}-${customPhoto}`;
+    const { customSize = '', customColor = '', customPhoto = '', customPhotoName = '' } = customizations;
+    const cartId = `${product._id}-${customSize}-${customColor}-${customPhoto}`;
     setItems(prev => {
       const exists = prev.find(i => i.cartId === cartId);
       return exists
         ? prev.map(i => i.cartId === cartId ? { ...i, qty: i.qty + 1 } : i)
-        : [...prev, { ...product, qty: 1, cartId, customSize, customPhoto, customPhotoName }];
+        : [...prev, { ...product, qty: 1, cartId, customSize, customColor, customPhoto, customPhotoName }];
     });
     showToast(`${product.name} added to cart!`, 'success');
   }, [showToast]);
