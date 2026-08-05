@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProduct, uploadImage } from '../api';
 import { useCart } from '../context/CartContext';
 import { getImageUrl } from '../utils/imageHelper';
 
 function ProductDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
@@ -134,6 +135,31 @@ function ProductDetails() {
     addToCart(customizedProduct, customizations);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
+  };
+
+  const handleBuyNow = () => {
+    if (product.allowCustomPhoto && isCustomStatue && !photoUrl) {
+      setUploadError('Please upload an HD photo first.');
+      return;
+    }
+
+    const customSizeVal = size === 'Custom' ? (customSizeText || 'Custom Size') : size;
+    
+    const customizedProduct = {
+      ...product,
+      price: finalPrice,
+      originalPrice: originalFinalPrice,
+    };
+
+    const customizations = {
+      customSize: customSizeVal,
+      customColor: selectedColor || '',
+      customPhoto: (product.allowCustomPhoto && isCustomStatue) ? photoUrl : '',
+      customPhotoName: (product.allowCustomPhoto && isCustomStatue) ? 'Statue Photo' : '',
+    };
+
+    addToCart(customizedProduct, customizations);
+    navigate('/checkout');
   };
 
   return (
@@ -372,31 +398,52 @@ function ProductDetails() {
             </div>
           )}
 
-          {/* ADD TO CART ACTION */}
+          {/* ACTION BUTTONS */}
           <div style={{ marginTop: 8 }}>
             {product.inStock ? (
-              <button
-                onClick={handleAddToCart}
-                style={{
-                  width: '100%',
-                  padding: '14px',
-                  background: 'black',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 'var(--radius-lg)',
-                  fontSize: 15,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                }}
-              >
-                {added ? '✓ Item Added to Cart' : '🛒 Add to Cart'}
-              </button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <button
+                  onClick={handleAddToCart}
+                  style={{
+                    padding: '14px',
+                    background: 'white',
+                    color: 'black',
+                    border: '2px solid black',
+                    borderRadius: 'var(--radius-lg)',
+                    fontSize: 15,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                  }}
+                >
+                  {added ? '✓ Added' : '🛒 Add to Cart'}
+                </button>
+                <button
+                  onClick={handleBuyNow}
+                  style={{
+                    padding: '14px',
+                    background: 'black',
+                    color: 'white',
+                    border: '2px solid black',
+                    borderRadius: 'var(--radius-lg)',
+                    fontSize: 15,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  ⚡ Buy Now
+                </button>
+              </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '14px', background: 'var(--bg3)', borderRadius: 'var(--radius-lg)', color: 'var(--text3)', fontWeight: 600 }}>
                 Out of Stock
