@@ -73,7 +73,6 @@ function Checkout() {
   const handleSubmit = async e => {
     e.preventDefault();
     if (items.length === 0) { setError('Your cart is empty!'); return; }
-    if (!form.state)        { setError('Please select your state.'); return; }
     setLoading(true);
     setError('');
 
@@ -223,12 +222,11 @@ function Checkout() {
 
           {/* ── STATE SELECTOR ── */}
           <div className="form-group">
-            <label>State *</label>
+            <label>State</label>
             <select
               name="state"
               value={form.state}
               onChange={handleChange}
-              required
               style={{
                 width: '100%',
                 padding: '10px 12px',
