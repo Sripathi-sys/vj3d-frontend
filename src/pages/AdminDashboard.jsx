@@ -106,6 +106,7 @@ const EMPTY_PRODUCT = {
   name: '', description: '', price: '', originalPrice: '',
   emoji: '', badge: '', category: '',
   inStock: true, featured: false, isNewArrival: false, isCombo: false,
+  allowCustomPhoto: false,
   sizes: [], colors: []
 };
 
@@ -181,6 +182,7 @@ export function AdminProducts() {
       featured:      p.featured      ?? false,
       isNewArrival:  p.isNewArrival  ?? false,
       isCombo:       p.isCombo       ?? false,
+      allowCustomPhoto: p.allowCustomPhoto ?? false,
       sizes:         p.sizes         || [],
       colors:        p.colors        || [],
     });
@@ -222,6 +224,7 @@ export function AdminProducts() {
       data.append('featured',      form.featured);
       data.append('isNewArrival',  form.isNewArrival);
       data.append('isCombo',       form.isCombo);
+      data.append('allowCustomPhoto', form.allowCustomPhoto);
       data.append('sizes',         JSON.stringify(form.sizes || []));
       data.append('colors',        JSON.stringify(form.colors || []));
       if (form.category) data.append('category', form.category);
@@ -531,7 +534,13 @@ export function AdminProducts() {
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
-                    {[['inStock', '✓ In Stock'], ['featured', '⭐ Featured'], ['isNewArrival', '🆕 New Arrival'], ['isCombo', '🎁 Combo']].map(([k, l]) => (
+                    {[
+                      ['inStock', '✓ In Stock'],
+                      ['featured', '⭐ Featured'],
+                      ['isNewArrival', '🆕 New Arrival'],
+                      ['isCombo', '🎁 Combo'],
+                      ['allowCustomPhoto', '📷 Allow Custom Photo']
+                    ].map(([k, l]) => (
                       <label key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, cursor: 'pointer', fontWeight: 500, padding: '6px 0' }}>
                         <input type="checkbox" checked={form[k]} onChange={e => setForm({ ...form, [k]: e.target.checked })} style={{ width: 16, height: 16, cursor: 'pointer' }} />
                         {l}

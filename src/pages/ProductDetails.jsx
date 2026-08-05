@@ -111,7 +111,7 @@ function ProductDetails() {
   };
 
   const handleAddToCart = () => {
-    if (isCustomStatue && !photoUrl) {
+    if (product.allowCustomPhoto && isCustomStatue && !photoUrl) {
       setUploadError('Please upload an HD photo first.');
       return;
     }
@@ -127,8 +127,8 @@ function ProductDetails() {
     const customizations = {
       customSize: customSizeVal,
       customColor: selectedColor || '',
-      customPhoto: isCustomStatue ? photoUrl : '',
-      customPhotoName: isCustomStatue ? 'Statue Photo' : '',
+      customPhoto: (product.allowCustomPhoto && isCustomStatue) ? photoUrl : '',
+      customPhotoName: (product.allowCustomPhoto && isCustomStatue) ? 'Statue Photo' : '',
     };
 
     addToCart(customizedProduct, customizations);
@@ -291,84 +291,86 @@ function ProductDetails() {
           )}
 
           {/* BELOVED ONES CUSTOM PHOTO UPLOAD */}
-          <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 18, marginTop: 8 }}>
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={isCustomStatue}
-                onChange={e => setIsCustomStatue(e.target.checked)}
-                style={{ marginTop: 3, width: 16, height: 16, accentColor: 'var(--accent)' }}
-              />
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 14.5, color: 'var(--text)' }}>
-                  🎨 3D Statue of Beloved Ones Customization
+          {product.allowCustomPhoto && (
+            <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 18, marginTop: 8 }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={isCustomStatue}
+                  onChange={e => setIsCustomStatue(e.target.checked)}
+                  style={{ marginTop: 3, width: 16, height: 16, accentColor: 'var(--accent)' }}
+                />
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14.5, color: 'var(--text)' }}>
+                    🎨 3D Statue of Beloved Ones Customization
+                  </div>
+                  <div style={{ fontSize: 12.5, color: 'var(--text3)', marginTop: 2, lineHeight: 1.5 }}>
+                    Check this if you want a 3D statue of your passed father, mother, or any important person. Add their HD photo.
+                  </div>
                 </div>
-                <div style={{ fontSize: 12.5, color: 'var(--text3)', marginTop: 2, lineHeight: 1.5 }}>
-                  Check this if you want a 3D statue of your passed father, mother, or any important person. Add their HD photo.
-                </div>
-              </div>
-            </label>
+              </label>
 
-            {isCustomStatue && (
-              <div style={{ marginTop: 16, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                  <label
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '10px 18px',
-                      background: 'var(--bg)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 'var(--radius)',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
-                    }}
-                  >
-                    📁 Select HD Photo / Document
-                    <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} />
-                  </label>
+              {isCustomStatue && (
+                <div style={{ marginTop: 16, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                    <label
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '10px 18px',
+                        background: 'var(--bg)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius)',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+                      }}
+                    >
+                      📁 Select HD Photo / Document
+                      <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} />
+                    </label>
 
-                  {uploading && (
-                    <div style={{ fontSize: 13, color: 'var(--text3)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span className="spinner" style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #ccc', borderTop: '2px solid #333', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></span>
-                      Uploading photo...
+                    {uploading && (
+                      <div style={{ fontSize: 13, color: 'var(--text3)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span className="spinner" style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #ccc', borderTop: '2px solid #333', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></span>
+                        Uploading photo...
+                      </div>
+                    )}
+
+                    {photoUrl && (
+                      <div style={{ fontSize: 13, color: '#15803d', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        ✓ Photo Uploaded Successfully!
+                      </div>
+                    )}
+                  </div>
+
+                  {uploadError && (
+                    <div style={{ color: 'var(--red)', fontSize: 12.5, marginTop: 8 }}>
+                      ⚠️ {uploadError}
                     </div>
                   )}
 
                   {photoUrl && (
-                    <div style={{ fontSize: 13, color: '#15803d', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                      ✓ Photo Uploaded Successfully!
+                    <div style={{ marginTop: 12, position: 'relative', display: 'inline-block' }}>
+                      <img
+                        src={photoUrl}
+                        alt="Beloved one preview"
+                        style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}
+                      />
+                      <button
+                        onClick={() => setPhotoUrl('')}
+                        style={{ position: 'absolute', top: -6, right: -6, background: 'var(--red)', color: 'white', border: 'none', borderRadius: '50%', width: 18, height: 18, fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        ✕
+                      </button>
                     </div>
                   )}
                 </div>
-
-                {uploadError && (
-                  <div style={{ color: 'var(--red)', fontSize: 12.5, marginTop: 8 }}>
-                    ⚠️ {uploadError}
-                  </div>
-                )}
-
-                {photoUrl && (
-                  <div style={{ marginTop: 12, position: 'relative', display: 'inline-block' }}>
-                    <img
-                      src={photoUrl}
-                      alt="Beloved one preview"
-                      style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}
-                    />
-                    <button
-                      onClick={() => setPhotoUrl('')}
-                      style={{ position: 'absolute', top: -6, right: -6, background: 'var(--red)', color: 'white', border: 'none', borderRadius: '50%', width: 18, height: 18, fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* ADD TO CART ACTION */}
           <div style={{ marginTop: 8 }}>
