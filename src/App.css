@@ -1249,6 +1249,7 @@ ul { list-style: none; }
 }
 .footer-bottom p { font-size: 12.5px; color: rgba(255,255,255,0.4); }
 .footer-bottom span { color: rgba(255,255,255,0.7); }
+.footer-br { display: none; }
 
 /* ── Responsive ── */
 @media (max-width: 960px) {
@@ -1268,6 +1269,9 @@ ul { list-style: none; }
   }
   .made-in-tn {
     display: none;
+  }
+  .footer-br {
+    display: block;
   }
 }
 @media (max-width: 480px) {

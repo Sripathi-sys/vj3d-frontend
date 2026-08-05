@@ -66,7 +66,7 @@ function Footer() {
         <div className="footer-bottom">
           <p>© {year} <span>VJ 3D Works</span> by J. Vijay. All rights reserved.</p>
           <p className="designed-by" style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', textAlign: 'center' }}>
-            Designed and maintaining by{' '}
+            Designed and maintaining by <br className="footer-br" />
             <a 
               href="https://wa.me/919042757617?text=Hi%20%2C%20I%20am%20came%20from%20Vj3dworks.com"
               target="_blank" 
