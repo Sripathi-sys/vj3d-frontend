@@ -1261,6 +1261,14 @@ ul { list-style: none; }
   .feat { min-width: 140px; padding: 14px 16px; }
   .admin-sidebar { display: none; }
   .admin-layout .admin-main { width: 100%; }
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+  }
+  .made-in-tn {
+    display: none;
+  }
 }
 @media (max-width: 480px) {
   .hero { padding: 48px 20px 56px; }
