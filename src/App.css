@@ -930,6 +930,30 @@ ul { list-style: none; }
   transition: background var(--transition);
 }
 .place-order-btn:hover { background: #333; }
+.wa-share-btn {
+  width: 100%;
+  background: var(--wa);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 15px;
+  border-radius: var(--radius);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition), filter var(--transition);
+}
+.wa-share-btn:hover {
+  filter: brightness(0.92);
+}
+.wa-share-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 /* ── Contact Page ── */
 .contact-page { max-width: 760px; margin: 0 auto; padding: 60px 24px; }
