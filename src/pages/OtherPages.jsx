@@ -1,5 +1,5 @@
 // src/pages/OtherPages.jsx
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { uploadImage } from '../api';
 
@@ -9,29 +9,145 @@ const WA_BASE   = `https://wa.me/${WA_NUMBER}`;
 /* ── ORDER SUCCESS ── */
 export function OrderSuccess() {
   const { state } = useLocation();
+  const [countdown, setCountdown] = useState(2);
+  const [redirectCancelled, setRedirectCancelled] = useState(false);
+  const redirectedRef = useRef(false);
+
+  const orderId = state?.orderId || state?.order?._id || '';
+  const redirectKey = orderId ? `vj3d_wa_redirected_${orderId}` : null;
+  const alreadyRedirected = redirectKey ? sessionStorage.getItem(redirectKey) === 'true' : false;
+
+  const waUrl = state?.waUrl || (orderId ? `${WA_BASE}?text=Hi%20VJ%203D%20Works!%20I%20want%20to%20track%20my%20order.%20Order%20ID%3A%20${orderId}` : WA_BASE);
+
+  useEffect(() => {
+    // Only auto-redirect if we have a prefilled WhatsApp URL and haven't redirected yet for this order
+    if (!state?.waUrl || alreadyRedirected || redirectedRef.current || redirectCancelled) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      redirectedRef.current = true;
+      if (redirectKey) {
+        sessionStorage.setItem(redirectKey, 'true');
+      }
+      // Safe same-window navigation to avoid popup blockers
+      window.location.href = state.waUrl;
+    }, 2000);
+
+    const interval = setInterval(() => {
+      setCountdown(prev => (prev > 1 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [state?.waUrl, alreadyRedirected, redirectCancelled, redirectKey]);
+
   return (
     <div className="success-page">
       <div className="success-icon">✅</div>
       <h1>Order Placed!</h1>
-      {state?.orderId && (
+      {orderId && (
         <p style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '10px 16px', display: 'inline-block', fontSize: 13.5, marginBottom: 16 }}>
-          Order ID: <strong>#{state.orderId}</strong>
+          Order ID: <strong>#{orderId}</strong>
         </p>
       )}
-      <p>
-        Thank you for your order! We'll pack it carefully and send you the tracking details on WhatsApp.
-        Delivery in 3–5 business days.
+      <p style={{ marginBottom: 20 }}>
+        Thank you for your order! Your payment was verified successfully.
+        We'll pack your items carefully and update tracking details on WhatsApp.
       </p>
+
+      {/* WhatsApp Redirect Status Card */}
+      {state?.waUrl && !alreadyRedirected && !redirectCancelled ? (
+        <div style={{
+          background: '#f0fdf4',
+          border: '1px solid #86efac',
+          borderRadius: 'var(--radius)',
+          padding: '16px 20px',
+          maxWidth: 520,
+          margin: '0 auto 24px',
+          fontSize: 14,
+          color: '#15803d',
+          textAlign: 'center',
+        }}>
+          <div style={{ fontWeight: 600, marginBottom: 6, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <span>📲</span> Redirecting to WhatsApp in {countdown}s...
+          </div>
+          <p style={{ fontSize: 13, color: '#166534', margin: '4px 0 12px', lineHeight: 1.5 }}>
+            A pre-filled order confirmation message will open. <strong>Please press "Send" in WhatsApp</strong> to share your order details with our team.
+          </p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a
+              href={state.waUrl}
+              onClick={() => {
+                redirectedRef.current = true;
+                if (redirectKey) sessionStorage.setItem(redirectKey, 'true');
+              }}
+              style={{
+                background: 'var(--wa)',
+                color: '#fff',
+                padding: '9px 18px',
+                borderRadius: 'var(--radius)',
+                fontWeight: 600,
+                fontSize: 13.5,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              Open WhatsApp Now
+            </a>
+            <button
+              type="button"
+              onClick={() => setRedirectCancelled(true)}
+              style={{
+                background: 'transparent',
+                border: '1px solid #86efac',
+                color: '#15803d',
+                padding: '8px 14px',
+                borderRadius: 'var(--radius)',
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              Cancel Auto-Redirect
+            </button>
+          </div>
+        </div>
+      ) : (
+        state?.waUrl && (
+          <div style={{
+            background: 'var(--bg2)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius)',
+            padding: '14px 18px',
+            maxWidth: 520,
+            margin: '0 auto 24px',
+            fontSize: 13.5,
+            color: 'var(--text2)',
+          }}>
+            💬 <strong>Need to message our workshop?</strong><br />
+            <span style={{ fontSize: 12.5, color: 'var(--text3)' }}>
+              If WhatsApp didn't open or you closed it, click below to open your pre-filled order message:
+            </span>
+          </div>
+        )
+      )}
+
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
         <Link to="/products" className="btn-primary">Continue Shopping</Link>
-        {/* ✅ FIX: Replaced email tracking with WhatsApp */}
+        {/* Visible manual fallback button */}
         <a
-          href={`${WA_BASE}?text=Hi%20VJ%203D%20Works!%20I%20want%20to%20track%20my%20order.%20Order%20ID%3A%20${state?.orderId || ''}`}
-          target="_blank"
-          rel="noreferrer"
+          href={waUrl}
+          onClick={() => {
+            if (redirectKey) sessionStorage.setItem(redirectKey, 'true');
+          }}
           className="btn-outline"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
         >
-          📲 Track via WhatsApp
+          <span>📲</span> {state?.waUrl ? 'Share Order via WhatsApp' : 'Track via WhatsApp'}
         </a>
       </div>
     </div>

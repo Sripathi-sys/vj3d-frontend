@@ -13,6 +13,75 @@ const WA_SVG = (
   </svg>
 );
 
+// ── WhatsApp Order Message Builder (Post-Payment Verified Order) ──
+export function buildWhatsAppOrderMessage(order, razorpayPaymentId) {
+  if (!order) return '';
+  const orderId = order._id || order.orderId || '';
+  const customerName = order.customerName || '';
+  const customerPhone = order.customerPhone || '';
+  const customerEmail = order.customerEmail ? String(order.customerEmail).trim() : '';
+  const address = order.address || '';
+  const city = order.city || '';
+  const state = order.state || '';
+  const pincode = order.pincode || '';
+  const paymentId = order.razorpayPaymentId || razorpayPaymentId || '';
+
+  const items = Array.isArray(order.items) ? order.items : [];
+  let calculatedSubtotal = 0;
+
+  const itemsList = items.map((item, idx) => {
+    const qty = parseInt(item.qty || item.quantity || 1, 10);
+    const price = Number(item.price) || 0;
+    const itemTotal = price * qty;
+    calculatedSubtotal += itemTotal;
+
+    const customizations = [];
+    const size = item.size || item.customSize;
+    const color = item.color || item.customColor;
+    const photo = item.photo || item.customPhoto;
+
+    if (size) customizations.push(`Size: ${size}`);
+    if (color) customizations.push(`Color: ${color}`);
+    if (photo) customizations.push(`Photo Uploaded`);
+
+    const customText = customizations.length > 0 ? ` (${customizations.join(', ')})` : '';
+
+    return `${idx + 1}. *${item.name}*${customText}\n   Qty: ${qty} × ₹${price} = ₹${itemTotal}`;
+  }).join('\n');
+
+  const shippingCharge = Number(order.shippingCharge) || 0;
+  const grandTotal = Number(order.totalAmount) || (calculatedSubtotal + shippingCharge);
+  const subtotal = calculatedSubtotal > 0 ? calculatedSubtotal : (grandTotal - shippingCharge);
+
+  const emailLine = customerEmail ? `• *Email:* ${customerEmail}\n` : '';
+  const notesLine = order.notes && String(order.notes).trim() ? `\n*Order Notes:* ${String(order.notes).trim()}\n` : '';
+
+  return `*🛍️ ORDER CONFIRMATION - VJ 3D WORKS*
+----------------------------------------
+*Order ID:* #${orderId}
+*Payment Status:* PAID
+*Razorpay Payment ID:* ${paymentId}
+----------------------------------------
+*Customer Details:*
+• *Name:* ${customerName}
+• *Phone:* ${customerPhone}
+${emailLine}• *Delivery Address:*
+  ${address}, ${city}, ${state} - ${pincode}
+
+----------------------------------------
+*Ordered Products:*
+${itemsList}
+
+----------------------------------------
+*Payment Summary:*
+• *Subtotal:* ₹${subtotal}
+• *Shipping Charge (${state}):* ₹${shippingCharge}
+• *Grand Total:* ₹${grandTotal}
+• *Status:* PAID (Razorpay: ${paymentId})
+----------------------------------------${notesLine}
+Thank you for your order! Please process my 3D print.`;
+}
+
 // ── Shipping charges by state ──
 const SHIPPING_RATES = {
   'Tamil Nadu':         60,
@@ -173,8 +242,28 @@ Please confirm my order. Thank you!`;
     setError('');
 
     try {
-      const { data } = await createRazorpayOrder({ amount: grandTotal });
-      if (!data.success) throw new Error('Could not initiate payment');
+      const orderPayload = {
+        customerName:  form.customerName.trim(),
+        customerPhone: form.customerPhone.trim(),
+        customerEmail: form.customerEmail.trim(),
+        address:       form.address.trim(),
+        city:          form.city.trim(),
+        state:         form.state.trim(),
+        pincode:       form.pincode.trim(),
+        notes:         form.notes.trim(),
+        items: items.map(i => ({
+          product: (i._id && i._id.length === 24) ? i._id : undefined,
+          name:    i.name,
+          price:   i.price,
+          qty:     i.qty,
+          size:    i.customSize || '',
+          color:   i.customColor || '',
+          photo:   i.customPhoto || '',
+        })),
+      };
+
+      const { data } = await createRazorpayOrder(orderPayload);
+      if (!data.success || !data.order) throw new Error(data.message || 'Could not initiate payment');
 
       const rzpOrder = data.order;
 
@@ -196,37 +285,40 @@ Please confirm my order. Thank you!`;
 
         handler: async (response) => {
           try {
-            const orderData = {
-              ...form,
-              items: items.map(i => ({
-                product: i._id,
-                name:    i.name,
-                price:   i.price,
-                qty:     i.qty,
-                size:    i.customSize || '',
-                color:   i.customColor || '',
-                photo:   i.customPhoto || '',
-              })),
-              totalAmount:    grandTotal,
-              shippingCharge: shippingCharge,
-            };
-
             const verify = await verifyPayment({
               razorpay_order_id:   response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature:  response.razorpay_signature,
-              orderData,
             });
 
             if (verify.data.success) {
+              const verifiedOrder = verify.data.order || {
+                ...orderPayload,
+                _id: verify.data.orderId || data.orderId,
+                razorpayPaymentId: response.razorpay_payment_id,
+                shippingCharge,
+                totalAmount: grandTotal,
+              };
+
+              const waMessage = buildWhatsAppOrderMessage(verifiedOrder, response.razorpay_payment_id);
+              const waUrl = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waMessage)}`;
+
               clearCart();
-              navigate('/order-success', { state: { orderId: verify.data.orderId } });
+
+              navigate('/order-success', {
+                state: {
+                  orderId: verify.data.orderId || verifiedOrder._id,
+                  order:   verifiedOrder,
+                  waUrl:   waUrl,
+                },
+              });
             } else {
-              setError('Payment done but order saving failed. Please contact support.');
+              setError(verify.data.message || 'Payment verification failed on the server. Please contact support.');
+              setLoading(false);
             }
           } catch (err) {
-            setError('Payment received but verification failed. Contact support with Payment ID: ' + response.razorpay_payment_id);
-          } finally {
+            console.error('Payment verification error:', err);
+            setError(err.response?.data?.message || ('Payment received but server verification failed. Contact support with Payment ID: ' + response.razorpay_payment_id));
             setLoading(false);
           }
         },
@@ -241,13 +333,14 @@ Please confirm my order. Thank you!`;
 
       const rzp = new window.Razorpay(options);
       rzp.on('payment.failed', (response) => {
-        setError(`Payment failed: ${response.error.description}`);
+        setError(`Payment failed: ${response.error?.description || 'Payment could not be completed'}`);
         setLoading(false);
       });
       rzp.open();
 
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to initiate payment. Please try again.');
+      console.error('Create Razorpay order error:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to initiate payment. Please try again.');
       setLoading(false);
     }
   };
