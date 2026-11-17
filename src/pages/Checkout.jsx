@@ -125,9 +125,14 @@ const SHIPPING_RATES = {
 
 const STATE_LIST = Object.keys(SHIPPING_RATES).sort();
 
+// ── TEMPORARY PAYMENT TEST CHANGE: Shipping forced to ₹0 for all states ──
+// To restore original calculation, replace this function with:
+// function getShipping(state) {
+//   if (!state) return 0;
+//   return SHIPPING_RATES[state] || 130;
+// }
 function getShipping(state) {
-  if (!state) return 0;
-  return SHIPPING_RATES[state] || 130;
+  return 0;
 }
 
 function Checkout() {
@@ -435,21 +440,21 @@ Please confirm my order. Thank you!`;
             </select>
           </div>
 
-          {/* ── SHIPPING INFO BANNER ── */}
+          {/* ── SHIPPING INFO BANNER (TEMPORARY PAYMENT TEST CHANGE) ── */}
           {form.state && (
             <div style={{
-              background: shippingCharge === 60 ? '#f0fdf4' : '#eff6ff',
-              border: `1px solid ${shippingCharge === 60 ? '#86efac' : '#93c5fd'}`,
+              background: '#f0fdf4',
+              border: '1px solid #86efac',
               borderRadius: 'var(--radius)',
               padding: '10px 14px',
               marginBottom: 16,
               fontSize: 13.5,
-              color: shippingCharge === 60 ? '#15803d' : '#1d4ed8',
+              color: '#15803d',
               display: 'flex',
               alignItems: 'center',
               gap: 8,
             }}>
-              🚚 Shipping to <strong>{form.state}</strong>: ₹{shippingCharge}
+              🎉 <strong>Free Shipping Enabled (Payment Test)</strong>: Shipping to <strong>{form.state}</strong> is ₹0
             </div>
           )}
 
@@ -531,8 +536,9 @@ Please confirm my order. Thank you!`;
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, fontSize: 14, color: 'var(--text2)' }}>
               <span>Shipping</span>
-              <span style={{ fontWeight: 600, color: shippingCharge === 0 ? 'var(--text3)' : 'var(--text)' }}>
-                {form.state ? `₹${shippingCharge}` : 'Select state'}
+              {/* ── TEMPORARY PAYMENT TEST CHANGE: Display Shipping: ₹0 ── */}
+              <span style={{ fontWeight: 600, color: '#16a34a' }}>
+                ₹0
               </span>
             </div>
           </div>
@@ -542,12 +548,11 @@ Please confirm my order. Thank you!`;
             <span>₹{grandTotal}</span>
           </div>
 
-          {/* ── SHIPPING RATES INFO ── */}
+          {/* ── SHIPPING RATES INFO (TEMPORARY PAYMENT TEST CHANGE) ── */}
           <div style={{ marginTop: 16, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '12px 14px', fontSize: 12.5, color: 'var(--text3)', lineHeight: 1.8 }}>
             🚚 <strong style={{ color: 'var(--text2)' }}>Shipping Rates:</strong><br />
-            Tamil Nadu & Puducherry — ₹60<br />
-            Kerala — ₹80<br />
-            Other states — ₹130
+            <span style={{ color: '#16a34a', fontWeight: 600 }}>⚡ Temporary Payment Test: ₹0 Free Shipping applied to all states</span><br />
+            <span style={{ color: 'var(--text3)', fontSize: 11.5 }}>(Standard rates: TN/PY ₹60, KL ₹80, Others ₹130)</span>
           </div>
 
         </div>
